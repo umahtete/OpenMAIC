@@ -18,8 +18,8 @@ const inter = localFont({
 
 export const metadata: Metadata = {
   title: 'LuxUp AI Tutor',
-  description:
-    'LuxUp AI Tutor - Lighting the Path to Knowledge. AI-powered personalized education platform by LuxUp Training.',
+  description: 'AI-powered personalized education platform',
+  keywords: ['LuxUp', 'AI Tutor', 'education', 'personalized learning', 'e-learning'],
 };
 
 export default function RootLayout({
