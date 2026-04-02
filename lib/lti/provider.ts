@@ -72,7 +72,7 @@ export async function verifyLTIToken(idToken: string): Promise<LTIJWTPayload> {
     audience: config.clientId,
   });
   
-  return payload as LTIJWTPayload;
+  return payload as unknown as LTIJWTPayload;
 }
 
 /**
