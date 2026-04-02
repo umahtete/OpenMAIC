@@ -2,7 +2,7 @@
 // Exposes the tool's public keys for JWT verification
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicKey, exportJWK } from 'jose';
+import { generateKeyPair, exportJWK } from 'jose';
 
 // In-memory key storage (in production, use persistent storage)
 let keyPair: { publicKey: any; privateKey: any; kid: string } | null = null;
@@ -16,8 +16,7 @@ async function getKeyPair() {
   }
 
   // Generate a new key pair
-  const { publicKey, privateKey } = await createPublicKey({
-    crv: 'EdDSA',
+  const { publicKey, privateKey } = await generateKeyPair('EdDSA', {
     extractable: true,
   });
 
