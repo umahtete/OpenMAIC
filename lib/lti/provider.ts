@@ -60,7 +60,7 @@ export async function verifyLTIToken(idToken: string): Promise<LTIJWTPayload> {
   
   // Decode header to get kid
   const [headerB64] = idToken.split('.');
-  const header = JSON.parse(Buffer.from(headerB64, 'base64').toString());
+  const header = JSON.parse(atob(headerB64));
   
   // Get the signing key
   const jwk = await getSigningKey(header.kid);
@@ -118,10 +118,9 @@ export function extractLaunchContext(payload: LTIJWTPayload): LTILaunchContext {
 }
 
 /**
- * Map Moodle roles to OpenMAIC roles
- */
+ * Map Moodle roles to OpenMAIC roles */
 export function mapMoodleRoleToOpenMAIC(roles: string[]): OpenMAICRole {
-  // Moodle role URIs
+  // Moodle role URIS
   const ROLE_MAPPINGS: Record<string, OpenMAICRole> = {
     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator': 'admin',
     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Instructor': 'teacher',
