@@ -171,8 +171,8 @@ export async function createLTISession(context: LTILaunchContext): Promise<strin
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setIssuer('openmaic-lti')
-    .setAudience('openmaic')
+    .setIssuer('luxup-lti')
+    .setAudience('luxup')
     .setExpirationTime('1h')
     .sign(secret);
   
@@ -187,8 +187,8 @@ export async function verifyLTISession(token: string): Promise<LTISessionData | 
     const secret = new TextEncoder().encode(getSessionSecret());
     
     const { payload } = await jwtVerify(token, secret, {
-      issuer: 'openmaic-lti',
-      audience: 'openmaic',
+      issuer: 'luxup-lti',
+      audience: 'luxup',
     });
     
     return payload as unknown as LTISessionData;
