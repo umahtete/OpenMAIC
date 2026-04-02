@@ -155,19 +155,19 @@ export function mapMoodleRoleToOpenMAIC(roles: string[]): OpenMAICRole {
 /**
  * Create a session JWT for the LTI user
  */
-export async function createLTISession(context: LTILaunchContext): Promise<string> {
+export async function createLTISession(sessionData: LTISessionData): Promise<string> {
   const secret = new TextEncoder().encode(getSessionSecret());
   
   const token = await new SignJWT({
-    userId: context.userId,
-    email: context.email,
-    name: context.name,
-    role: mapMoodleRoleToOpenMAIC(context.roles),
-    contextId: context.contextId,
-    contextTitle: context.contextTitle,
-    platformId: context.platformId,
-    deploymentId: context.deploymentId,
-    resourceLinkId: context.resourceLinkId,
+    userId: sessionData.userId,
+    email: sessionData.email,
+    name: sessionData.name,
+    role: sessionData.role,
+    contextId: sessionData.contextId,
+    contextTitle: sessionData.contextTitle,
+    platformId: sessionData.platformId,
+    deploymentId: sessionData.deploymentId,
+    resourceLinkId: sessionData.resourceLinkId,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
