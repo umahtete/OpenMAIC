@@ -64,6 +64,9 @@ export async function verifyLTIToken(idToken: string): Promise<LTIJWTPayload> {
   
   // Get the signing key
   const jwk = await getSigningKey(header.kid);
+  if (!header.alg) {
+    throw new Error('Missing alg in JWT header');
+  }
   const key = await importJWK(jwk, header.alg);
   
   // Verify the token

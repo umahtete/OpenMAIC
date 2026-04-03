@@ -2,7 +2,6 @@
 // This endpoint receives the id_token from the platform after OIDC authentication
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { 
   verifyLTIToken, 
   extractLaunchContext, 
