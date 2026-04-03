@@ -117,6 +117,10 @@ export function extractLaunchContext(payload: LTIJWTPayload): LTILaunchContext {
     
     // Custom parameters
     custom: payload['https://purl.imsglobal.org/spec/lti/claim/custom'],
+    
+    // Timestamps
+    issuedAt: payload.iat,
+    expiresAt: payload.exp,
   };
 }
 
