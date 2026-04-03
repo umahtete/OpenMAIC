@@ -3,10 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateKeyPair, exportJWK } from 'jose';
-import type { KeyLike } from 'jose';
 
 // In-memory key storage (in production, use persistent storage)
-let keyPair: { publicKey: KeyLike; privateKey: KeyLike; kid: string } | null = null;
+let keyPair: { publicKey: CryptoKey; privateKey: CryptoKey; kid: string } | null = null;
 
 /**
  * Get or generate the key pair for LTI signing
