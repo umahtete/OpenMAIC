@@ -47,6 +47,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
 import { SpeechButton } from '@/components/audio/speech-button';
+import { BRANDING } from '@/lib/config/branding';
 
 const log = createLogger('Home');
 
@@ -499,10 +500,7 @@ function HomePage() {
           className="flex items-center gap-2 mb-2"
         >
           <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#1E3A5F] bg-clip-text text-transparent">
-            LuxUp
-          </span>
-          <span className="text-2xl md:text-3xl font-semibold text-gray-700 dark:text-gray-300">
-            AI Tutor
+            {BRANDING.name}
           </span>
         </motion.div>
 
@@ -686,7 +684,7 @@ function HomePage() {
 
       {/* Footer — flows with content, at the very end */}
       <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        LuxUp AI Tutor
+        {BRANDING.name}
       </div>
     </div>
   );
