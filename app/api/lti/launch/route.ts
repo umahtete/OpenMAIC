@@ -11,6 +11,7 @@ import {
   LTISessionData
 } from '@/lib/lti/provider';
 import { LTI_CONFIG, getSessionSecret } from '@/lib/lti/config';
+import { provisionUserFromLTI } from '@/lib/user-provisioning/service';
 
 /**
  * POST /api/lti/launch
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest) {
 
     // Create session token
     const sessionToken = await createLTISession(sessionData);
+
+    // Provision the user in OpenMAIC
+    const provisioningResult = await provisionUserFromLTI(sessionData);
+
+    console.log('[LTI] User provisioned:', {
+      userId: provisioningResult.user.id,
+      isNew: provisioningResult.isNew,
+    });
 
     // Determine redirect URL based on message type
     let redirectUrl: string;
