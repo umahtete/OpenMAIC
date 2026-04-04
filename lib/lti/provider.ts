@@ -244,37 +244,22 @@ export function generateNonce(): string {
 }
 
 /**
- * Store state temporarily (in production, use Redis)
- * For now, we'll use an in-memory store
+ * Store state temporarily using database
  */
-const stateStore: Map<string, { nonce: string; expires: number }> = new Map();
-
-export function storeState(state: string, nonce: string): void {
-  stateStore.set(state, {
+export async function storeState(state: string, nonce: string): Promise<void> {
+  const { createState, cleanExpiredStates } = await import('./stores/state-store');
+  
+  await createState({
+    state,
     nonce,
-    expires: Date.now() + LTI_CONFIG.state.maxAge,
+    expiresAt: new Date(Date.now() + LTI_CONFIG.state.maxAge),
   });
   
   // Clean up expired states
-  for (const [key, value] of stateStore.entries()) {
-    if (value.expires < Date.now()) {
-      stateStore.delete(key);
-    }
-  }
+  await cleanExpiredStates();
 }
 
-export function getAndDeleteState(state: string): { nonce: string } | null {
-  const stored = stateStore.get(state);
-  
-  if (!stored) {
-    return null;
-  }
-  
-  stateStore.delete(state);
-  
-  if (stored.expires < Date.now()) {
-    return null;
-  }
-  
-  return { nonce: stored.nonce };
+export async function getAndDeleteState(state: string): Promise<{ nonce: string } | null> {
+  const { getAndDeleteState: dbGetAndDeleteState } = await import('./stores/state-store');
+  return dbGetAndDeleteState(state);
 }

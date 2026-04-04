@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify state and get nonce
-    const stateData = getAndDeleteState(state);
+    const stateData = await getAndDeleteState(state);
     if (!stateData) {
       return NextResponse.json(
         { error: 'Invalid or expired state' },

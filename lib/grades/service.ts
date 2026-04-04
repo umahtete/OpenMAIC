@@ -5,45 +5,55 @@
 
 import { GradePayload, GradePassbackResult, LineItem } from './types';
 import { LTISessionData } from '@/lib/lti/provider';
+import {
+  createGrade,
+  getGradesByUserId,
+  type ActivityProgress,
+  type GradingProgress,
+} from '@/lib/lti/stores/grade-store';
+import {
+  createLineItem as createLineItemRecord,
+  getLineItemsForContextFromDb,
+} from '@/lib/lti/stores/line-item-store';
+
+export type { ActivityProgress, GradingProgress };
 
 /**
- * In-memory grade store (replace with database in production)
- */
-const gradeStore: Map<string, GradePayload> = new Map();
-const lineItemStore: Map<string, LineItem> = new Map();
-
-/**
- * Submit a grade to Moodle
+ * Submit a grade to the LMS
  */
 export async function submitGrade(
   sessionData: LTISessionData,
   grade: GradePayload
 ): Promise<GradePassbackResult> {
   try {
-    // Check if AGS endpoint is available in the session
-    const agsEndpoint = sessionData.resourceLinkId; // This would be the AGS line item URL
-    
-    if (!agsEndpoint) {
+    if (!sessionData.resourceLinkId) {
       return {
         success: false,
         error: 'AGS endpoint not available for this session',
       };
     }
-    
-    // In production, this would make an HTTP POST to the AGS endpoint
-    // For now, we store the grade locally
-    const gradeId = `${sessionData.userId}:${sessionData.contextId}:${Date.now()}`;
-    gradeStore.set(gradeId, grade);
-    
+
+    const gradeRecord = await createGrade({
+      userId: sessionData.userId,
+      contextId: sessionData.contextId,
+      resourceLinkId: sessionData.resourceLinkId,
+      score: grade.scoreGiven,
+      scoreMaximum: grade.scoreMaximum,
+      activityProgress: grade.activityProgress,
+      gradingProgress: grade.gradingProgress,
+      timestamp: new Date(grade.timestamp),
+    });
+
     console.log('[Grade Passback] Grade submitted:', {
       userId: sessionData.userId,
       score: `${grade.scoreGiven}/${grade.scoreMaximum}`,
       progress: grade.activityProgress,
+      gradeId: gradeRecord.id,
     });
-    
+
     return {
       success: true,
-      lineItemId: gradeId,
+      lineItemId: gradeRecord.id,
     };
   } catch (error) {
     console.error('[Grade Passback] Error:', error);
@@ -62,46 +72,50 @@ export async function createLineItem(
   label: string,
   scoreMaximum: number = 100
 ): Promise<LineItem> {
-  const lineItemId = `${sessionData.contextId}:${label}`;
-  
-  const lineItem: LineItem = {
-    id: lineItemId,
-    scoreMaximum,
+  const lineItem = await createLineItemRecord({
+    contextId: sessionData.contextId,
     label,
     resourceId: sessionData.resourceLinkId,
+    resourceLinkId: sessionData.resourceLinkId,
+    scoreMaximum,
+  });
+
+  return {
+    id: lineItem.id,
+    scoreMaximum: lineItem.scoreMaximum,
+    label: lineItem.label,
+    resourceId: lineItem.resourceId ?? undefined,
+    resourceLinkId: lineItem.resourceLinkId ?? undefined,
   };
-  
-  lineItemStore.set(lineItemId, lineItem);
-  
-  return lineItem;
 }
 
 /**
  * Get all grades for a user
  */
 export async function getGradesForUser(userId: string): Promise<GradePayload[]> {
-  const grades: GradePayload[] = [];
-  
-  for (const [id, grade] of gradeStore.entries()) {
-    if (id.startsWith(userId)) {
-      grades.push(grade);
-    }
-  }
-  
-  return grades;
+  const grades = await getGradesByUserId(userId);
+
+  return grades.map((grade) => ({
+    scoreGiven: grade.score,
+    scoreMaximum: grade.scoreMaximum,
+    activityProgress: grade.activityProgress as ActivityProgress,
+    gradingProgress: grade.gradingProgress as GradingProgress,
+    timestamp: grade.timestamp.toISOString(),
+    userId: grade.userId,
+  }));
 }
 
 /**
  * Get all line items for a context
  */
-export async function getLineItemsForContext(contextId: string): Promise<LineItem[]> {
-  const lineItems: LineItem[] = [];
-  
-  for (const [id, item] of lineItemStore.entries()) {
-    if (id.startsWith(contextId)) {
-      lineItems.push(item);
-    }
-  }
-  
-  return lineItems;
+export async function getLineItems(contextId: string): Promise<LineItem[]> {
+  const lineItems = await getLineItemsForContextFromDb(contextId);
+
+  return lineItems.map((item) => ({
+    id: item.id,
+    scoreMaximum: item.scoreMaximum,
+    label: item.label,
+    resourceId: item.resourceId ?? undefined,
+    resourceLinkId: item.resourceLinkId ?? undefined,
+  }));
 }

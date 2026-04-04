@@ -4,6 +4,13 @@
  */
 
 import { LTISessionData } from '@/lib/lti/provider';
+import {
+  upsertUser,
+  getUserById,
+  getUserBySub,
+  mapRolesToOpenMAIC,
+  type LtiUserRecord,
+} from '@/lib/lti/stores/user-store';
 
 export interface ProvisionedUser {
   id: string;
@@ -18,81 +25,88 @@ export interface ProvisionedUser {
   lastAccessedAt: Date;
 }
 
-export interface UserProvisioningResult {
+export interface ProvisioningResult {
   user: ProvisionedUser;
   isNew: boolean;
 }
 
 /**
- * In-memory user store (replace with database in production)
+ * Convert LtiUserRecord to ProvisionedUser
  */
-const userStore: Map<string, ProvisionedUser> = new Map();
+function toProvisionedUser(record: LtiUserRecord): ProvisionedUser {
+  const [platformId, platformUserId] = record.sub.split(':');
+  return {
+    id: record.id,
+    email: record.email ?? undefined,
+    name: record.name ?? undefined,
+    role: mapRolesToOpenMAIC(record.roles),
+    platformId: platformId ?? record.platformId,
+    platformUserId: platformUserId ?? '',
+    createdAt: record.createdAt,
+    lastAccessedAt: record.updatedAt,
+  };
+}
 
 /**
- * Provision or retrieve a user from LTI session data
+ * Provision a user from LTI session data
+ * Creates or updates the user based on LTI launch information
  */
-export async function provisionUserFromLTI(sessionData: LTISessionData): Promise<UserProvisioningResult> {
-  const userId = `${sessionData.platformId}:${sessionData.userId}`;
-  
-  const existingUser = userStore.get(userId);
-  
+export async function provisionUserFromLTI(
+  sessionData: LTISessionData
+): Promise<ProvisioningResult> {
+  // Create unique subject identifier
+  const sub = `${sessionData.platformId}:${sessionData.userId}`;
+
+  // Check if user already exists
+  const existingUser = await getUserBySub(sub);
+
   if (existingUser) {
-    existingUser.lastAccessedAt = new Date();
-    return { user: existingUser, isNew: false };
+    // Update existing user
+    const updated = await upsertUser({
+      sub,
+      platformId: sessionData.platformId,
+      email: sessionData.email,
+      name: sessionData.name,
+      roles: [sessionData.role],
+    });
+
+    return {
+      user: toProvisionedUser(updated),
+      isNew: false,
+    };
   }
-  
-  const newUser: ProvisionedUser = {
-    id: userId,
+
+  // Create new user
+  const newUser = await upsertUser({
+    sub,
+    platformId: sessionData.platformId,
     email: sessionData.email,
     name: sessionData.name,
-    role: sessionData.role,
-    platformId: sessionData.platformId,
-    platformUserId: sessionData.userId,
-    contextId: sessionData.contextId,
-    contextTitle: sessionData.contextTitle,
-    createdAt: new Date(),
-    lastAccessedAt: new Date(),
-  };
-  
-  userStore.set(userId, newUser);
-  
-  console.log('[User Provisioning] Created new user:', {
-    id: userId,
-    email: sessionData.email,
-    role: sessionData.role,
+    roles: [sessionData.role],
   });
-  
-  return { user: newUser, isNew: true };
+
+  return {
+    user: toProvisionedUser(newUser),
+    isNew: true,
+  };
 }
 
 /**
- * Get user by ID
+ * Get a provisioned user by ID
  */
-export async function getUserById(userId: string): Promise<ProvisionedUser | null> {
-  return userStore.get(userId) || null;
+export async function getProvisionedUser(id: string): Promise<ProvisionedUser | null> {
+  const record = await getUserById(id);
+  return record ? toProvisionedUser(record) : null;
 }
 
 /**
- * Get user by platform user ID
+ * Get a provisioned user by platform ID and user ID
  */
-export async function getUserByPlatformId(platformId: string, platformUserId: string): Promise<ProvisionedUser | null> {
-  const userId = `${platformId}:${platformUserId}`;
-  return userStore.get(userId) || null;
-}
-
-/**
- * Update user's last accessed time
- */
-export async function touchUser(userId: string): Promise<void> {
-  const user = userStore.get(userId);
-  if (user) {
-    user.lastAccessedAt = new Date();
-  }
-}
-
-/**
- * Get all users (for admin purposes)
- */
-export async function getAllUsers(): Promise<ProvisionedUser[]> {
-  return Array.from(userStore.values());
+export async function getProvisionedUserByPlatformId(
+  platformId: string,
+  platformUserId: string
+): Promise<ProvisionedUser | null> {
+  const sub = `${platformId}:${platformUserId}`;
+  const record = await getUserBySub(sub);
+  return record ? toProvisionedUser(record) : null;
 }
