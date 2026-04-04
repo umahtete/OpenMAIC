@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyLTISession } from '@/lib/lti/provider';
-import { submitGrade, GradePayload } from '@/lib/grades/service';
+import { submitGrade } from '@/lib/grades/service';
+import { GradePayload } from '@/lib/grades/types';
 
 /**
  * POST /api/grades/submit
