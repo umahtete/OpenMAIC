@@ -1,4 +1,4 @@
-// LTI 1.3 Configuration for OpenMAIC
+// LTI 1.3 Configuration for LuxUp AI Tutor
 
 import { LTIPlatformConfig, LTIToolConfig } from './types';
 

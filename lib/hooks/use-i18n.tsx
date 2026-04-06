@@ -1,48 +1,87 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Locale, translate, defaultLocale } from '@/lib/i18n';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Locale, defaultLocale } from '@/lib/i18n/types';
+import { translate } from '@/lib/i18n/index';
 
-type I18nContextType = {
+const LOCALE_STORAGE_KEY = 'locale';
+
+// All supported locales
+const ALL_LOCALES: Locale[] = [
+  'zh-CN', 'en-US', 'sw-KE', 'fr-FR', 'ar-SA', 'pt-BR', 'hi-IN', 'de-DE', 'it-IT'
+];
+
+interface I18nContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   t: (key: string) => string;
-};
+}
 
-const LOCALE_STORAGE_KEY = 'locale';
-const VALID_LOCALES: Locale[] = ['zh-CN', 'en-US'];
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
+const I18nContext = createContext<I18nContextType | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+  const [localeState, setLocaleState] = useState<Locale>(() => {
+    // Try to get stored locale on first render
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+      if (stored && ALL_LOCALES.includes(stored as Locale)) {
+        return stored as Locale;
+      }
+    }
+    return defaultLocale;
+  });
 
   // Hydrate from localStorage after mount (avoids SSR mismatch)
-  /* eslint-disable react-hooks/set-state-in-effect -- Hydration from localStorage must happen in effect */
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      if (stored && VALID_LOCALES.includes(stored as Locale)) {
+      if (stored && ALL_LOCALES.includes(stored as Locale)) {
         setLocaleState(stored as Locale);
         return;
       }
-      const detected = navigator.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
+      // Enhanced browser language detection
+      const browserLang = navigator.language || (navigator as { userLanguage?: string }).userLanguage || '';
+      const detected = detectLocale(browserLang);
       localStorage.setItem(LOCALE_STORAGE_KEY, detected);
       setLocaleState(detected);
     } catch {
       // localStorage unavailable, keep default
     }
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
   };
 
-  const t = (key: string): string => translate(locale, key);
+  const t = (key: string): string => translate(localeState, key);
 
-  return <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={{ locale: localeState, setLocale, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
+}
+
+/**
+ * Detect the best matching locale from browser language
+ */
+function detectLocale(browserLang: string): Locale {
+  const lang = browserLang.toLowerCase();
+  
+  // Direct matches
+  if (lang.startsWith('zh')) return 'zh-CN';
+  if (lang.startsWith('en')) return 'en-US';
+  if (lang.startsWith('sw')) return 'sw-KE';
+  if (lang.startsWith('fr')) return 'fr-FR';
+  if (lang.startsWith('ar')) return 'ar-SA';
+  if (lang.startsWith('pt')) return 'pt-BR';
+  if (lang.startsWith('hi')) return 'hi-IN';
+  if (lang.startsWith('de')) return 'de-DE';
+  if (lang.startsWith('it')) return 'it-IT';
+  
+  // Default to English
+  return defaultLocale;
 }
 
 export function useI18n() {

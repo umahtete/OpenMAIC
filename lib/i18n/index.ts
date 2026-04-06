@@ -1,6 +1,10 @@
 import { defaultLocale, type Locale } from './types';
-export { type Locale, defaultLocale } from './types';
-import { commonZhCN, commonEnUS } from './common';
+export { type Locale, defaultLocale, from './types';
+
+import {
+  commonZhCN, commonEnUS, commonSwKE, commonFrFR, commonArSA,
+  commonPtBR, commonHiIN, commonDeDE, commonItIT
+} from './common';
 import { stageZhCN, stageEnUS } from './stage';
 import { chatZhCN, chatEnUS } from './chat';
 import { generationZhCN, generationEnUS } from './generation';
@@ -21,6 +25,62 @@ export const translations = {
     ...generationEnUS,
     ...settingsEnUS,
   },
+  // Swahili (Kenya)
+  'sw-KE': {
+    ...commonSwKE,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // French (France)
+  'fr-FR': {
+    ...commonFrFR,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // Arabic (Saudi Arabia)
+  'ar-SA': {
+    ...commonArSA,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // Portuguese (Brazil)
+  'pt-BR': {
+    ...commonPtBR,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // Hindi (India)
+  'hi-IN': {
+    ...commonHiIN,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // German (Germany)
+  'de-DE': {
+    ...commonDeDE,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
+  // Italian (Italy)
+  'it-IT': {
+    ...commonItIT,
+    ...stageEnUS,
+    ...chatEnUS,
+    ...generationEnUS,
+    ...settingsEnUS,
+  },
 } as const;
 
 export type TranslationKey = keyof (typeof translations)[typeof defaultLocale];
@@ -28,6 +88,12 @@ export type TranslationKey = keyof (typeof translations)[typeof defaultLocale];
 export function translate(locale: Locale, key: string): string {
   const keys = key.split('.');
   let value: unknown = translations[locale];
+  
+  // Fallback to English if locale not found
+  if (!value) {
+    value = translations['en-US'];
+  }
+  
   for (const k of keys) {
     value = (value as Record<string, unknown>)?.[k];
   }
@@ -40,8 +106,11 @@ export function getClientTranslation(key: string): string {
   if (typeof window !== 'undefined') {
     try {
       const storedLocale = localStorage.getItem('locale');
-      if (storedLocale === 'zh-CN' || storedLocale === 'en-US') {
-        locale = storedLocale;
+      const validLocales: Locale[] = [
+        'zh-CN', 'en-US', 'sw-KE', 'fr-FR', 'ar-SA', 'pt-BR', 'hi-IN', 'de-DE', 'it-IT'
+      ];
+      if (storedLocale && validLocales.includes(storedLocale as Locale)) {
+        locale = storedLocale as Locale;
       }
     } catch {
       // localStorage unavailable, keep default locale

@@ -174,13 +174,13 @@ export function mediaFileKey(stageId: string, elementId: string): string {
 
 // ==================== Database Definition ====================
 
-const DATABASE_NAME = 'MAIC-Database';
+const DATABASE_NAME = 'LuxUp-Database';
 const _DATABASE_VERSION = 8;
 
 /**
- * MAIC Database Instance
+ * LuxUp Database Instance
  */
-class MAICDatabase extends Dexie {
+class LuxUpDatabase extends Dexie {
   // Table definitions
   stages!: EntityTable<StageRecord, 'id'>;
   scenes!: EntityTable<SceneRecord, 'id'>;

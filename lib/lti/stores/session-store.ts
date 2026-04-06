@@ -1,35 +1,31 @@
 import prisma from '@/lib/db';
+import { LtiSession } from '@prisma/client';
 
-export interface LtiSessionRecord {
-  id: string;
-  userId: string;
-  platformId: string;
-  contextId: string;
-  contextLabel: string | null;
-  contextTitle: string | null;
-  resourceLinkId: string | null;
-  resourceLinkTitle: string | null;
-  customParams: Record<string, unknown> | null;
-  expiresAt: Date;
-  createdAt: Date;
-}
+export type LtiSessionRecord = LtiSession;
 
 export interface CreateSessionData {
   userId: string;
   platformId: string;
   contextId: string;
-  contextLabel?: string;
-  contextTitle?: string;
-  resourceLinkId?: string;
-  resourceLinkTitle?: string;
-  customParams?: Record<string, unknown>;
+  contextLabel?: string | null;
+  contextTitle?: string | null;
+  resourceLinkId?: string | null;
+  resourceLinkTitle?: string | null;
+  customParams?: Record<string, unknown> | null;
   expiresAt: Date;
+}
+
+function toSessionRecord(session: LtiSession): LtiSessionRecord {
+  return {
+    ...session,
+    customParams: session.customParams as Record<string, unknown>,
+  } as LtiSessionRecord;
 }
 
 export async function createSession(
   data: CreateSessionData
 ): Promise<LtiSessionRecord> {
-  return prisma.ltiSession.create({
+  const session = await prisma.ltiSession.create({
     data: {
       userId: data.userId,
       platformId: data.platformId,
@@ -42,45 +38,39 @@ export async function createSession(
       expiresAt: data.expiresAt,
     },
   });
+  return toSessionRecord(session);
 }
 
 export async function getSessionById(
   id: string
 ): Promise<LtiSessionRecord | null> {
-  return prisma.ltiSession.findUnique({
+  const session = await prisma.ltiSession.findUnique({
     where: { id },
   });
+  return session ? toSessionRecord(session) : null;
 }
 
 export async function getSessionsByUserId(
   userId: string
 ): Promise<LtiSessionRecord[]> {
-  return prisma.ltiSession.findMany({
+  const sessions = await prisma.ltiSession.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
   });
+  return sessions.map(toSessionRecord);
 }
 
 export async function getActiveSessionsByUserId(
   userId: string
 ): Promise<LtiSessionRecord[]> {
-  return prisma.ltiSession.findMany({
+  const sessions = await prisma.ltiSession.findMany({
     where: {
       userId,
       expiresAt: { gt: new Date() },
     },
     orderBy: { createdAt: 'desc' },
   });
-}
-
-export async function updateSessionExpiry(
-  id: string,
-  expiresAt: Date
-): Promise<LtiSessionRecord> {
-  return prisma.ltiSession.update({
-    where: { id },
-    data: { expiresAt },
-  });
+  return sessions.map(toSessionRecord);
 }
 
 export async function deleteSession(id: string): Promise<void> {

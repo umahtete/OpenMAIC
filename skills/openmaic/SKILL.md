@@ -1,12 +1,11 @@
 ---
-name: openmaic
-description: Guided SOP for setting up and using OpenMAIC from OpenClaw. Use when the user wants to clone the OpenMAIC repo, choose a startup mode, configure recommended API keys, start the service, or generate a classroom from requirements or a PDF. Run one phase at a time and ask for confirmation before each state-changing step.
+name: luxup-ai-tutor
+description: Guided SOP for setting up and using LuxUp AI Tutor from OpenClaw. Use when the user wants to clone the LuxUp AI Tutor repo, choose a startup mode, configure recommended API keys, start the service, or generate a classroom from requirements or a PDF. Run one phase at a time and ask for confirmation before each state-changing step.
 user-invocable: true
-metadata: { "openclaw": { "emoji": "🏫" } }
+metadata: { "openclaw": { "emoji": "🎓" } }
 ---
 
-# OpenMAIC Skill
-
+# LuxUp AI Tutor Skill
 Use this as a guided, confirmation-heavy SOP. Do not compress the whole setup into one reply and do not perform state-changing actions without explicit user confirmation.
 
 ## Core Rules
@@ -14,10 +13,10 @@ Use this as a guided, confirmation-heavy SOP. Do not compress the whole setup in
 - Move one phase at a time.
 - Before any state-changing action, ask for confirmation.
 - If local state already exists, show what you found and ask whether to keep it.
-- Do not assume the OpenClaw agent's own model or API key will be reused by OpenMAIC.
-- OpenMAIC classroom generation uses OpenMAIC server-side provider config.
+- Do not assume the OpenClaw agent's own model or API key will be reused by LuxUp AI Tutor.
+- LuxUp AI Tutor classroom generation uses LuxUp AI Tutor server-side provider config.
 - This skill must not rely on any request-time model or provider overrides.
-- Only OpenMAIC server-side config files may control provider selection and defaults.
+- Only LuxUp AI Tutor server-side config files may control provider selection and defaults.
 - Do not default to asking the user to paste API keys into chat.
 - Prefer guiding the user to edit local config files themselves.
 - Do not offer to write API keys into config files on the user's behalf.
@@ -32,11 +31,11 @@ If present, read defaults from `~/.openclaw/openclaw.json` under:
 {
   "skills": {
     "entries": {
-      "openmaic": {
+      "luxup-ai-tutor": {
         "enabled": true,
         "config": {
           "accessCode": "sk-xxx",
-          "repoDir": "/path/to/OpenMAIC",
+          "repoDir": "/path/to/luxup-ai-tutor",
           "url": "http://localhost:3000"
         }
       }
@@ -55,9 +54,9 @@ If present, read defaults from `~/.openclaw/openclaw.json` under:
 
 First check skill config for `accessCode`. If present, announce that a stored access code was found and proceed directly to hosted mode (load [references/hosted-mode.md](references/hosted-mode.md), skip phases 1–4). Do not ask the user to paste the code again.
 
-If no `accessCode` in config, ask the user how they want to use OpenMAIC:
+If no `accessCode` in config, ask the user how they want to use LuxUp AI Tutor:
 
-1. **Use hosted OpenMAIC** (recommended for quick start) — Requires an access code from open.maic.chat. No local setup needed.
+1. **Use hosted LuxUp AI Tutor** (recommended for quick start) — Requires an access code from aitutor.luxuptraining.com. No local setup needed.
 2. **Run locally** — Clone the repo, configure provider keys, and run on your machine.
 
 If the user chooses hosted mode, load [references/hosted-mode.md](references/hosted-mode.md) and skip phases 1–4.
@@ -67,7 +66,7 @@ If the user chooses local mode, proceed to phase 1 as usual.
 
 Load [references/clone.md](references/clone.md).
 
-Use this when the user has not installed OpenMAIC yet or when you need to confirm which local checkout to use.
+Use this when the user has not installed LuxUp AI Tutor yet or when you need to confirm which local checkout to use.
 
 ### 2. Choose Startup Mode
 
@@ -83,9 +82,9 @@ Use this before starting classroom generation. Recommend a provider path and tel
 
 After the core LLM key is configured, ask the user if they want to enable optional features (web search, image generation, video generation, TTS). Each requires its own provider key — see the "Optional Features" section in provider-keys.md.
 
-### 4. Start And Verify OpenMAIC
+### 4. Start And Verify LuxUp AI Tutor
 
-After the user has chosen a startup mode and configured keys, start OpenMAIC using the chosen method, then verify the service with `GET {url}/api/health`.
+After the user has chosen a startup mode and configured keys, start LuxUp AI Tutor using the chosen method, then verify the service with `GET {url}/api/health`.
 
 ### 5. Generate A Classroom
 

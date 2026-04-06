@@ -137,9 +137,9 @@ export interface LTIContentItem {
 }
 
 /**
- * Moodle role to OpenMAIC role mapping
+ * Moodle role to LuxUp AI Tutor role mapping
  */
-export type OpenMAICRole = 'student' | 'teacher' | 'admin';
+export type LuxUpRole = 'student' | 'teacher' | 'admin';
 
 /**
  * LTI OIDC Authentication Request

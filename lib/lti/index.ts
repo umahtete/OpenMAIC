@@ -1,5 +1,4 @@
-// LTI 1.3 Integration for OpenMAIC
-// Exports all LTI-related functionality
+// LTI 1.3 Integration for LuxUp AI Tutor
 
 export * from './types';
 export * from './config';
