@@ -26,6 +26,9 @@ COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/prisma ./prisma
 COPY . .
 
+# Explicitly generate Prisma client to ensure .prisma directory exists
+RUN npx prisma generate
+
 RUN pnpm build
 
 # ---- Stage 4: Runner ----
