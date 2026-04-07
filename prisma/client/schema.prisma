@@ -1,0 +1,115 @@
+// Prisma Schema for LuxUp AI Tutor LTI
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model LtiUser {
+  id         String   @id @default(cuid())
+  sub        String   @unique
+  platformId String
+  email      String?
+  name       String?
+  givenName  String?
+  familyName String?
+  roles      String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sessions LtiSession[]
+  grades   LtiGrade[]
+
+  @@index([platformId])
+  @@index([email])
+  @@map("lti_users")
+}
+
+model LtiSession {
+  id                String   @id @default(cuid())
+  userId            String
+  platformId        String
+  contextId         String
+  contextLabel      String?
+  contextTitle      String?
+  resourceLinkId    String?
+  resourceLinkTitle String?
+  customParams      Json?
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+
+  user LtiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([platformId])
+  @@index([contextId])
+  @@index([expiresAt])
+  @@map("lti_sessions")
+}
+
+model LtiState {
+  id        String   @id @default(cuid())
+  state     String   @unique
+  nonce     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([state])
+  @@index([expiresAt])
+  @@map("lti_states")
+}
+
+model LtiJwks {
+  id         String   @id @default(cuid())
+  publicKey  String   @db.Text
+  privateKey String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("lti_jwks")
+}
+
+model LtiGrade {
+  id               String    @id @default(cuid())
+  userId           String
+  contextId        String
+  resourceLinkId   String?
+  score            Float
+  scoreMaximum     Float
+  activityProgress String
+  gradingProgress  String
+  timestamp        DateTime
+  submitted        Boolean   @default(false)
+  submittedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  user LtiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contextId])
+  @@index([resourceLinkId])
+  @@map("lti_grades")
+}
+
+model LtiLineItem {
+  id             String    @id @default(cuid())
+  contextId      String
+  label          String
+  resourceId     String?
+  resourceLinkId String?
+  tag            String?
+  scoreMaximum   Float
+  startDateTime  DateTime?
+  endDateTime    DateTime?
+  platformUrl    String?
+  createdAt      DateTime  @default(now())
+
+  @@index([contextId])
+  @@index([resourceLinkId])
+  @@map("lti_line_items")
+}
