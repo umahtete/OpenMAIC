@@ -26,7 +26,7 @@ COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/prisma ./prisma
 COPY . .
 
-# Explicitly generate Prisma client to ensure .prisma directory exists
+# Explicitly generate Prisma client to ensure it exists
 RUN npx prisma generate
 
 RUN pnpm build
@@ -49,8 +49,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Copy the entire node_modules from builder (includes Prisma in pnpm structure)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
 
