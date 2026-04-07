@@ -29,7 +29,8 @@ COPY . .
 # Explicitly generate Prisma client to ensure it exists
 RUN npx prisma generate
 
-RUN pnpm build
+# Build with more memory and verbose output
+RUN NODE_OPTIONS="--max_old-space-size=4096" pnpm build 2>&1 | tee /tmp/build.log; cat /tmp/build.log
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
