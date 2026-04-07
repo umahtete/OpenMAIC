@@ -18,7 +18,8 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy pre-built application (standalone already includes all dependencies)
-COPY --chown=nextjs:nodejs .next/standalone ./
+# Note: standalone creates a nested folder matching the project name
+COPY --chown=nextjs:nodejs .next/standalone/openmaic_lti ./
 COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
