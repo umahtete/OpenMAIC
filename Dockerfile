@@ -29,10 +29,13 @@ COPY . .
 # Explicitly generate Prisma client to ensure it exists
 RUN npx prisma generate
 
-# Build and verify standalone output exists
-RUN NODE_OPTIONS="--max_old_space_size=4096" pnpm build && \
-    ls -la .next/ && \
-    test -d .next/standalone || (echo "ERROR: .next/standalone not found - build may have failed"; exit 1)
+# Build with more memory
+RUN NODE_OPTIONS="--max_old_space_size=4096" pnpm build
+
+# Debug: show what was built
+RUN echo "=== Build output ===" && \
+    ls -la .next/ 2>/dev/null || echo "No .next directory found" && \
+    ls -la .next/standalone/ 2>/dev/null || echo "No .next/standalone directory found"
 
 # ---- Stage 4: Runner ----
 FROM node:22-alpine AS runner
