@@ -4,6 +4,8 @@ node_modules
 
 # build output
 .next
+!.next/standalone
+!.next/static
 out
 build
 dist
