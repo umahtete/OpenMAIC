@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/azure-voices": {
+      "maxDuration": 30
+    },
+    "/api/chat": {
+      "maxDuration": 60
+    },
+    "/api/generate-classroom": {
+      "maxDuration": 30
+    },
+    "/api/generate/agent-profiles": {
+      "maxDuration": 120
+    },
+    "/api/generate/image": {
+      "maxDuration": 60
+    },
+    "/api/generate/scene-actions": {
+      "maxDuration": 60
+    },
+    "/api/generate/scene-content": {
+      "maxDuration": 300
+    },
+    "/api/generate/scene-outlines-stream": {
+      "maxDuration": 300
+    },
+    "/api/generate/tts": {
+      "maxDuration": 30
+    },
+    "/api/generate/video": {
+      "maxDuration": 300
+    },
+    "/api/proxy-media": {
+      "maxDuration": 60
+    },
+    "/api/transcription": {
+      "maxDuration": 60
+    }
+  }
+}

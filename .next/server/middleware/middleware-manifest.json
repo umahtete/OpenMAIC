@@ -1,0 +1,49 @@
+{
+  "sorted_middleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/[root-of-the-server]__4beb0308._.js",
+        "server/edge/chunks/1a128__pnpm_686bf2ee._.js",
+        "server/edge/chunks/openmaic_lti_d3acbfa0._.js",
+        "server/edge/chunks/98590_next_dist_esm_build_templates_edge-wrapper_d15f1369.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/classroom/:path*{(\\\\.json)}?",
+          "originalSource": "/classroom/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/classroom/:path*{(\\\\.json)}?",
+          "originalSource": "/api/classroom/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/tutor/:path*{(\\\\.json)}?",
+          "originalSource": "/api/tutor/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/chat/:path*{(\\\\.json)}?",
+          "originalSource": "/api/chat/:path*"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_da7cd21b3acf8cb1",
+          "filePath": "server/edge/chunks/00906__prisma_client_query_engine_bg_23ace1ce.wasm"
+        }
+      ],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "POGuJqrgRFBvwlls3N1je",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "STrWuzyqxtczv9pgk4m+2FKWqRSjusRY2pLq1V1quiA=",
+        "__NEXT_PREVIEW_MODE_ID": "bb5818a3c327aae9b1ec858394070868",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f26f6b16c72a42066ee7281203d118720b540e49264f432e42e96f8651915078",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "4234f4b5a5641032fa5b3f9867725230f05655e1f009d1af5c832df80a163969"
+      }
+    }
+  },
+  "instrumentation": null,
+  "functions": {}
+}

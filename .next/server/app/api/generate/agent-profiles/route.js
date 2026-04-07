@@ -1,0 +1,11 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/generate/agent-profiles/route.js")
+R.c("server/chunks/[root-of-the-server]__5906faee._.js")
+R.c("server/chunks/[root-of-the-server]__bb0a55dc._.js")
+R.c("server/chunks/openmaic_lti_lib_server_provider-config_ts_eab6c8e8._.js")
+R.c("server/chunks/1a128__pnpm_23df70f5._.js")
+R.c("server/chunks/92d9f_undici_3f70ed57._.js")
+R.c("server/chunks/1a128__pnpm_140e3fb5._.js")
+R.c("server/chunks/openmaic_lti_lib_ai_providers_ts_d46c63c3._.js")
+R.c("server/chunks/3f987__next-internal_server_app_api_generate_agent-profiles_route_actions_e8a28d4a.js")
+R.m(736724)
+module.exports=R.m(736724).exports
