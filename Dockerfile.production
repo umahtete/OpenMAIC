@@ -28,7 +28,7 @@ COPY --chown=nextjs:nodejs packages ./packages
 # Prisma client is already generated in the pre-built .next/standalone folder
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate && \
     pnpm install --prod --ignore-scripts && \
-    pnpm add prisma@6.5.0
+    pnpm add prisma@6.5.0 --prod
 
 USER nextjs
 
