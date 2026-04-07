@@ -24,10 +24,11 @@ COPY --chown=nextjs:nodejs prisma ./prisma
 COPY --chown=nextjs:nodejs package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --chown=nextjs:nodejs packages ./packages
 
-# Install production dependencies only (no devDependencies, no build tools)
+# Install production dependencies and Prisma CLI (needed for migrations)
 # Prisma client is already generated in the pre-built .next/standalone folder
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate && \
-    pnpm install --prod --ignore-scripts
+    pnpm install --prod --ignore-scripts && \
+    pnpm add prisma@6.5.0
 
 USER nextjs
 
