@@ -1,0 +1,3 @@
+module.exports=[17879,a=>{"use strict";a.i(837937),a.i(173e3);var b=a.i(840292);let c={contentType:"image/png",size:{width:180,height:180}};async function d(a){let{__metadata_id__:d,...e}=await a.params,f=(0,b.fillMetadataSegment)("/",e,"apple-icon");return[function(a,b){let c={alt:a.alt,type:a.contentType||"image/png",url:f+"?417362aa6972a6e7"},{size:d}=a;return d&&(c.sizes=`${d.width}x${d.height}`),c}(c,0)]}a.s(["default",0,d],17879)}];
+
+//# sourceMappingURL=openmaic_lti_app_apple-icon--metadata_98c43d54.js.map

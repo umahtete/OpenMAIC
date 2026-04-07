@@ -1,0 +1,10 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/transcription/route.js")
+R.c("server/chunks/[root-of-the-server]__3a86998f._.js")
+R.c("server/chunks/openmaic_lti_lib_server_provider-config_ts_eab6c8e8._.js")
+R.c("server/chunks/3f9d6_next_dist_esm_build_templates_app-route_e68835cd.js")
+R.c("server/chunks/1a128__pnpm_140e3fb5._.js")
+R.c("server/chunks/1a128__pnpm_23df70f5._.js")
+R.c("server/chunks/[root-of-the-server]__bb0a55dc._.js")
+R.c("server/chunks/openmaic_lti__next-internal_server_app_api_transcription_route_actions_281a631b.js")
+R.m(929597)
+module.exports=R.m(929597).exports
