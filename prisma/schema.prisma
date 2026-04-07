@@ -1,10 +1,5 @@
-// Prisma Schema for OpenMAIC LTI
+// Prisma Schema for LuxUp AI Tutor LTI
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// Prisma Schema - add explicit output path
 generator client {
   provider = "prisma-client-js"
   output   = "../prisma/client"
@@ -14,56 +9,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model LtiUser {
-  id         String   @id @default(cuid())
-  sub        String   @unique
-  platformId String
-  email      String?
-  name      String?
-  givenName  String?
-  familyName  String?
-  contextId      String
-  contextTitle String?
-  resourceLinkId String?
-  resourceLinkTitle String?
-  deploymentId String?
-  customParams Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAtNow()
-}
-
-model LtiResource {
-  id         String   @id @default(cuid())
-  userId      String
-  platformId      String
-  contextId      String
-  resourceLinkId String?
-  resourceType   String?
-  resourceTitle String?
-  resourceData     Json?
-  customParams Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAtNow()
-}
-
-model LtiContext {
-  id         String   @id @default(cuid())
-  userId      String
-  platformId      String
-  contextId      String
-  contextLabel      String?
-  contextTitle      String?
-  resourceLinkId String?
-  resourceLinkTitle String?
-  resourceLinkTitle String?
-  resourceData     Json?
-  customParams Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAtNow()
-  expiresAt     DateTime @updatedAtNow()
-}
-
 
 model LtiUser {
   id         String   @id @default(cuid())
