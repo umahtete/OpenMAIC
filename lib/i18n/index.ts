@@ -1,5 +1,5 @@
 import { defaultLocale, type Locale } from './types';
-export { type Locale, defaultLocale, from './types';
+export { type Locale, defaultLocale, LOCALE_NAMES, LOCALE_FLAGS } from './types';
 
 import {
   commonZhCN, commonEnUS, commonSwKE, commonFrFR, commonArSA,

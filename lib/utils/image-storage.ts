@@ -112,7 +112,7 @@ export async function cleanupSessionImages(sessionId: string): Promise<void> {
   try {
     const prefix = `session_${sessionId}_`;
     const allImages = await db.imageFiles.toArray();
-    const toDelete = allImages.filter((img) => img.id.startsWith(prefix));
+    const toDelete = allImages.filter((img: ImageFileRecord) => img.id.startsWith(prefix));
 
     for (const img of toDelete) {
       await db.imageFiles.delete(img.id);
@@ -142,7 +142,7 @@ export async function cleanupOldImages(hoursOld: number = 24): Promise<void> {
  */
 export async function getImageStorageSize(): Promise<number> {
   const images = await db.imageFiles.toArray();
-  return images.reduce((total, img) => total + img.size, 0);
+  return images.reduce((total: number, img: ImageFileRecord) => total + img.size, 0);
 }
 
 /**

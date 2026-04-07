@@ -34,7 +34,7 @@ export async function createSession(
       contextTitle: data.contextTitle ?? null,
       resourceLinkId: data.resourceLinkId ?? null,
       resourceLinkTitle: data.resourceLinkTitle ?? null,
-      customParams: data.customParams ?? null,
+      customParams: (data.customParams ?? null) as never,
       expiresAt: data.expiresAt,
     },
   });

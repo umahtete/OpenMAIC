@@ -313,7 +313,7 @@ class LuxUpDatabase extends Dexie {
 }
 
 // Create database instance
-export const db = new MAICDatabase();
+export const db = new LuxUpDatabase();
 
 // ==================== Helper Functions ====================
 

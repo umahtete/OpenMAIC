@@ -127,7 +127,7 @@ export function extractLaunchContext(payload: LTIJWTPayload): LTILaunchContext {
 /**
  * Map Moodle roles to LuxUp AI Tutor roles
  */
-export function mapMoodleRoleToLuxUpRole(roles: string[]): LuxUpRole {
+export function mapMoodleRoleToLuxUpRole(roles: string[]): OpenMAICRole {
   // Moodle role URIS
   const ROLE_MAPPINGS: Record<string, OpenMAICRole> = {
     'http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator': 'admin',

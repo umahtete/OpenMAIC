@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { 
   verifyLTIToken, 
   extractLaunchContext, 
-  mapMoodleRoleToOpenMAIC,
+  mapMoodleRoleToLuxUpRole,
   getAndDeleteState,
   createLTISession,
   LTISessionData
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const launchContext = extractLaunchContext(jwtPayload);
 
     // Extract and map role
-    const role = mapMoodleRoleToOpenMAIC(launchContext.roles);
+    const role = mapMoodleRoleToLuxUpRole(launchContext.roles);
 
     // Create session data
     const sessionData: LTISessionData = {

@@ -141,6 +141,9 @@ export interface LTIContentItem {
  */
 export type LuxUpRole = 'student' | 'teacher' | 'admin';
 
+// Backwards compatibility alias
+export type OpenMAICRole = LuxUpRole;
+
 /**
  * LTI OIDC Authentication Request
  */

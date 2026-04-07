@@ -7,7 +7,7 @@
 
 import { Stage, Scene } from '../types/stage';
 import { ChatSession } from '../types/chat';
-import { db } from './database';
+import { db, type StageRecord, type SceneRecord } from './database';
 import { saveChatSessions, loadChatSessions, deleteChatSessions } from './chat-storage';
 import { clearPlaybackState } from './playback-storage';
 import { createLogger } from '@/lib/logger';
@@ -140,7 +140,7 @@ export async function listStages(): Promise<StageListItem[]> {
     const stages = await db.stages.orderBy('updatedAt').reverse().toArray();
 
     const stageList: StageListItem[] = await Promise.all(
-      stages.map(async (stage) => {
+      stages.map(async (stage: StageRecord) => {
         const sceneCount = await db.scenes.where('stageId').equals(stage.id).count();
 
         return {
@@ -174,7 +174,7 @@ export async function getFirstSlideByStages(
     await Promise.all(
       stageIds.map(async (stageId) => {
         const scenes = await db.scenes.where('stageId').equals(stageId).sortBy('order');
-        const firstSlide = scenes.find((s) => s.content?.type === 'slide');
+        const firstSlide = scenes.find((s: SceneRecord) => s.content?.type === 'slide');
         if (firstSlide && firstSlide.content.type === 'slide') {
           const slide = structuredClone(firstSlide.content.canvas);
 
@@ -186,7 +186,7 @@ export async function getFirstSlideByStages(
           if (placeholderEls.length > 0) {
             const mediaRecords = await db.mediaFiles.where('stageId').equals(stageId).toArray();
             const mediaMap = new Map(
-              mediaRecords.map((r) => {
+              mediaRecords.map((r: { id: string; blob: Blob }) => {
                 // Key format: stageId:elementId → extract elementId
                 const elementId = r.id.includes(':') ? r.id.split(':').slice(1).join(':') : r.id;
                 return [elementId, r.blob] as const;
