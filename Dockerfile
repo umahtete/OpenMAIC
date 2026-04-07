@@ -16,7 +16,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
 COPY prisma ./prisma/
 
-RUN pnpm install
+RUN pnpm install --ignore-scripts
+
+# Build local packages manually (postinstall might fail in Docker)
+RUN cd packages/mathml2omml && npm run build && cd ../.. && \
+    cd packages/pptxgenjs && npm run build && cd ../..
 
 # ---- Stage 3: Builder ----
 FROM base AS builder
