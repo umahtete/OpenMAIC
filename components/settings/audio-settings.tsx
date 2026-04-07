@@ -721,16 +721,18 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
               className={cn(
                 'rounded-lg p-3 text-sm overflow-hidden',
                 asrTestStatus === 'success' &&
-                  'bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800',
+                'bg-primary/10 text-primary border border-primary/30',
                 asrTestStatus === 'error' &&
-                  'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800',
+                'bg-destructive/10 text-destructive border border-destructive/30',
               )}
             >
               <div className="flex items-start gap-2 min-w-0">
                 {asrTestStatus === 'success' && (
                   <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
                 )}
-                {asrTestStatus === 'error' && <XCircle className="h-4 w-4 mt-0.5 shrink-0" />}
+                {asrTestStatus === 'error' && (
+                  <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                )}
                 <p className="flex-1 min-w-0 break-all">{asrTestMessage}</p>
               </div>
             </div>

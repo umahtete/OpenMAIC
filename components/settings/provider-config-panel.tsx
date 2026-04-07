@@ -156,7 +156,7 @@ export function ProviderConfigPanel({
     <div className="space-y-6 max-w-3xl">
       {/* Server-configured notice */}
       {isServerConfigured && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3 text-sm text-blue-700 dark:text-blue-300">
+        <div className="rounded-lg border border-accent/30 bg-accent/10 p-3 text-sm text-accent">
           {t('settings.serverConfiguredNotice')}
         </div>
       )}
@@ -212,8 +212,8 @@ export function ProviderConfigPanel({
           <div
             className={cn(
               'rounded-lg p-3 text-sm overflow-hidden',
-              testStatus === 'success' && 'bg-green-50 text-green-700 border border-green-200',
-              testStatus === 'error' && 'bg-red-50 text-red-700 border border-red-200',
+              testStatus === 'success' && 'bg-primary/10 text-primary border border-primary/30',
+              testStatus === 'error' && 'bg-destructive/10 text-destructive border border-destructive/30',
             )}
           >
             <div className="flex items-start gap-2 min-w-0">

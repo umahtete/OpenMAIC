@@ -82,17 +82,17 @@ export function Header({ currentSceneTitle }: HeaderProps) {
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             onClick={() => router.push('/')}
-            className="shrink-0 p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="shrink-0 p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             title={t('generation.backToHome')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 dark:text-gray-500 mb-0.5">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-0.5">
               {t('stage.currentScene')}
             </span>
             <h1
-              className="text-xl font-bold text-gray-800 dark:text-gray-200 tracking-tight truncate"
+              className="text-xl font-bold text-foreground tracking-tight truncate"
               suppressHydrationWarning
             >
               {currentSceneTitle || t('common.loading')}
@@ -100,7 +100,7 @@ export function Header({ currentSceneTitle }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md px-2 py-1.5 rounded-full border border-gray-100/50 dark:border-gray-700/50 shadow-sm shrink-0">
+        <div className="flex items-center gap-4 bg-background/60 backdrop-blur-md px-2 py-1.5 rounded-full border border-border/50 shadow-sm shrink-0">
           {/* Language Selector */}
           <div className="relative" ref={languageRef}>
             <button
@@ -108,13 +108,13 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                 setLanguageOpen(!languageOpen);
                 setThemeOpen(false);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm transition-all"
             >
               <Globe className="w-3 h-3" />
               {LOCALE_FLAGS[locale]}
             </button>
             {languageOpen && (
-              <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[160px] max-h-[300px] overflow-y-auto">
+              <div className="absolute top-full mt-2 right-0 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-[160px] max-h-[300px] overflow-y-auto">
                 {(['zh-CN', 'en-US', 'sw-KE', 'fr-FR', 'ar-SA', 'pt-BR', 'hi-IN', 'de-DE', 'it-IT'] as Locale[]).map((loc) => (
                   <button
                     key={loc}
@@ -123,9 +123,9 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                       setLanguageOpen(false);
                     }}
                     className={cn(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
+                      'w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2',
                       locale === loc &&
-                        'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                        'bg-primary/10 text-primary',
                     )}
                   >
                     <span>{LOCALE_FLAGS[loc]}</span>
@@ -136,7 +136,7 @@ export function Header({ currentSceneTitle }: HeaderProps) {
             )}
           </div>
 
-          <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+          <div className="w-[1px] h-4 bg-border" />
 
           {/* Theme Selector */}
           <div className="relative" ref={themeRef}>
@@ -145,23 +145,23 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                 setThemeOpen(!themeOpen);
                 setLanguageOpen(false);
               }}
-              className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
+              className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm transition-all group"
             >
               {theme === 'light' && <Sun className="w-4 h-4" />}
               {theme === 'dark' && <Moon className="w-4 h-4" />}
               {theme === 'system' && <Monitor className="w-4 h-4" />}
             </button>
             {themeOpen && (
-              <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
+              <div className="absolute top-full mt-2 right-0 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
                 <button
                   onClick={() => {
                     setTheme('light');
                     setThemeOpen(false);
                   }}
                   className={cn(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
+                    'w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2',
                     theme === 'light' &&
-                      'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                      'bg-primary/10 text-primary',
                   )}
                 >
                   <Sun className="w-4 h-4" />
@@ -173,9 +173,9 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                     setThemeOpen(false);
                   }}
                   className={cn(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
+                    'w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2',
                     theme === 'dark' &&
-                      'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                      'bg-primary/10 text-primary',
                   )}
                 >
                   <Moon className="w-4 h-4" />
@@ -187,9 +187,9 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                     setThemeOpen(false);
                   }}
                   className={cn(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
+                    'w-full px-4 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2',
                     theme === 'system' &&
-                      'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                      'bg-primary/10 text-primary',
                   )}
                 >
                   <Monitor className="w-4 h-4" />
@@ -199,13 +199,13 @@ export function Header({ currentSceneTitle }: HeaderProps) {
             )}
           </div>
 
-          <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+          <div className="w-[1px] h-4 bg-border" />
 
           {/* Settings Button */}
           <div className="relative">
             <button
               onClick={() => setSettingsOpen(true)}
-              className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
+              className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm transition-all group"
             >
               <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
             </button>
@@ -229,8 +229,8 @@ export function Header({ currentSceneTitle }: HeaderProps) {
             className={cn(
               'shrink-0 p-2 rounded-full transition-all',
               canExport && !isExporting
-                ? 'text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm'
-                : 'text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50',
+                ? 'text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm'
+                : 'text-muted-foreground/50 cursor-not-allowed opacity-50',
             )}
           >
             {isExporting ? (
@@ -240,15 +240,15 @@ export function Header({ currentSceneTitle }: HeaderProps) {
             )}
           </button>
           {exportMenuOpen && (
-            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[200px]">
+            <div className="absolute top-full mt-2 right-0 bg-background border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-[200px]">
               <button
                 onClick={() => {
                   setExportMenuOpen(false);
                   exportPPTX();
                 }}
-                className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2.5"
+                className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2.5"
               >
-                <FileDown className="w-4 h-4 text-gray-400 shrink-0" />
+                <FileDown className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span>{t('export.pptx')}</span>
               </button>
               <button
@@ -256,12 +256,12 @@ export function Header({ currentSceneTitle }: HeaderProps) {
                   setExportMenuOpen(false);
                   exportResourcePack();
                 }}
-                className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2.5"
+                className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2.5"
               >
-                <Package className="w-4 h-4 text-gray-400 shrink-0" />
+                <Package className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div>
                   <div>{t('export.resourcePack')}</div>
-                  <div className="text-[11px] text-gray-400 dark:text-gray-500">
+                  <div className="text-[11px] text-muted-foreground">
                     {t('export.resourcePackDesc')}
                   </div>
                 </div>

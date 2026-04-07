@@ -386,8 +386,8 @@ export function ModelSelector({
                         className={cn(
                           'mx-3 mb-2 rounded-lg p-2 text-xs overflow-hidden',
                           testStatus === 'success' &&
-                            'bg-green-50 text-green-700 border border-green-200',
-                          testStatus === 'error' && 'bg-red-50 text-red-700 border border-red-200',
+                            'bg-primary/10 text-primary border border-primary/30',
+                          testStatus === 'error' && 'bg-destructive/10 text-destructive border border-destructive/30',
                         )}
                       >
                         <div className="flex items-start gap-2 min-w-0">
