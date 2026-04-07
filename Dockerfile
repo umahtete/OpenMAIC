@@ -6,42 +6,33 @@ RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
 WORKDIR /app
 
-# ---- Stage 2: Dependencies ----
-FROM base AS deps
+# ---- Stage 2: Builder (combined deps and build) ----
+FROM base AS builder
 
 # Native build tools for sharp, @napi-rs/canvas
 RUN apk add --no-cache python3 build-base g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/ ./packages/
-COPY prisma ./prisma/
+# Copy everything
+COPY . .
 
+# Install dependencies (skip postinstall to avoid issues)
 RUN pnpm install --ignore-scripts
 
-# Build local packages manually (postinstall might fail in Docker)
+# Build local packages
 RUN cd packages/mathml2omml && npm run build && cd ../.. && \
     cd packages/pptxgenjs && npm run build && cd ../..
 
-# ---- Stage 3: Builder ----
-FROM base AS builder
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/prisma ./prisma
-COPY . .
-
-# Explicitly generate Prisma client to ensure it exists
+# Generate Prisma client
 RUN npx prisma generate
 
-# Build with more memory
+# Build Next.js with more memory
 RUN NODE_OPTIONS="--max_old_space_size=4096" pnpm build
 
-# Debug: show what was built
-RUN echo "=== Build output ===" && \
-    ls -la .next/ 2>/dev/null || echo "No .next directory found" && \
-    ls -la .next/standalone/ 2>/dev/null || echo "No .next/standalone directory found"
+# Verify build output
+RUN ls -la .next/ && \
+    test -d .next/standalone || (echo "ERROR: .next/standalone not found"; exit 1)
 
-# ---- Stage 4: Runner ----
+# ---- Stage 3: Runner ----
 FROM node:22-alpine AS runner
 
 WORKDIR /app
