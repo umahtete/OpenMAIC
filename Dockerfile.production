@@ -26,8 +26,10 @@ COPY --chown=nextjs:nodejs packages ./packages
 
 # Install production dependencies only (no devDependencies, no build tools)
 RUN corepack enable && corepack prepare pnpm@10.28.0 --activate && \
-    pnpm install --prod --ignore-scripts && \
-    npx prisma generate
+    pnpm install --prod --ignore-scripts
+
+# Generate Prisma client using the installed version (not npx which downloads latest)
+RUN ./node_modules/.bin/prisma generate
 
 USER nextjs
 
