@@ -79,7 +79,7 @@ export const LTI_CONFIG = {
   // Session cookie settings
   session: {
     cookieName: 'openmaic_lti_session',
-    maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+    maxAge: 60 * 60, // 1 hour in seconds
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'none' as const,
     httpOnly: true,

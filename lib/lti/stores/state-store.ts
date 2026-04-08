@@ -39,9 +39,10 @@ export async function getAndDeleteState(state: string): Promise<{ nonce: string 
     return null;
   }
 
-  await prisma.ltiState.delete({
+  // Use deleteMany to avoid race condition errors if state was already consumed
+  await prisma.ltiState.deleteMany({
     where: { state },
-  });
+  }).catch(() => {});
 
   if (stored.expiresAt < new Date()) {
     return null;
