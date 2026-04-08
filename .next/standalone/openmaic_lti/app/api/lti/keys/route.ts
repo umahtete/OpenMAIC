@@ -1,53 +1,92 @@
-// LTI 1.3 JWKS Endpoint
-// Exposes the tool's public keys for JWT verification
+import { NextResponse } from 'next/server';
+import {
+  importJWK,
+  importPKCS8,
+  generateKeyPair,
+  exportJWK,
+  exportPKCS8,
+} from 'jose';
+import prisma from '@/lib/db';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { generateKeyPair, exportJWK } from 'jose';
-
-// In-memory key storage (in production, use persistent storage)
-let keyPair: { publicKey: CryptoKey; privateKey: CryptoKey; kid: string } | null = null;
-
-/**
- * Get or generate the key pair for LTI signing
- */
-async function getKeyPair() {
-  if (keyPair) {
-    return keyPair;
-  }
-
-  // Generate a new key pair
-  const { publicKey, privateKey } = await generateKeyPair('EdDSA', {
-    extractable: true,
-  });
-
-  keyPair = {
-    publicKey,
-    privateKey,
-    kid: 'openmaic-lti-key-1',
-  };
-
-  return keyPair;
+interface CachedKeyPair {
+  publicKey: CryptoKey;
+  privateKey: CryptoKey;
+  keyId: string;
 }
 
-/**
- * GET /api/lti/keys
- * Returns the JWKS (JSON Web Key Set) for LTI 1.3
- * 
- * Moodle will fetch this endpoint to get the public key for verifying our JWTs
- */
-export async function GET(request: NextRequest) {
+let cachedKeyPair: CachedKeyPair | null = null;
+
+async function getKeyPair(): Promise<CachedKeyPair> {
+  if (cachedKeyPair) {
+    return cachedKeyPair;
+  }
+
   try {
-    const keys = await getKeyPair();
-    
-    const jwk = await exportJWK(keys.publicKey);
-    
-    return NextResponse.json({
-      keys: [{
-        ...jwk,
-        kid: keys.kid,
-        alg: 'EdDSA',
-        use: 'sig',
-      }]
+    const storedKey = await prisma.ltiJwks.findFirst({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (storedKey) {
+      const publicKey = (await importJWK(JSON.parse(storedKey.publicKey), 'EdDSA')) as CryptoKey;
+      const privateKey = await importPKCS8(storedKey.privateKey, 'EdDSA');
+      const keyId = storedKey.id;
+
+      cachedKeyPair = { publicKey, privateKey, keyId };
+      return cachedKeyPair;
+    }
+  } catch (error) {
+    console.error('[LTI] Failed to load keys from database:', error);
+  }
+
+  try {
+    const { publicKey, privateKey } = await generateKeyPair('EdDSA', {
+      extractable: true,
+    });
+
+    const publicJwk = await exportJWK(publicKey);
+    const privateKeyPkcs8 = await exportPKCS8(privateKey);
+
+    const newKey = await prisma.ltiJwks.create({
+      data: {
+        publicKey: JSON.stringify(publicJwk),
+        privateKey: privateKeyPkcs8,
+      },
+    });
+
+    cachedKeyPair = {
+      publicKey,
+      privateKey,
+      keyId: newKey.id,
+    };
+
+    return cachedKeyPair;
+  } catch (error) {
+    console.error('[LTI] Failed to generate or store keys:', error);
+    throw error;
+  }
+}
+
+export async function GET() {
+  try {
+    const { publicKey, keyId } = await getKeyPair();
+    const publicJwk = await exportJWK(publicKey);
+
+    const jwks = {
+      keys: [
+        {
+          ...publicJwk,
+          kid: keyId,
+          alg: 'EdDSA',
+          use: 'sig',
+        },
+      ],
+    };
+
+    return NextResponse.json(jwks, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=3600',
+      },
     });
   } catch (error) {
     console.error('[LTI] Failed to generate JWKS:', error);
@@ -58,11 +97,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * Get the private key for signing JWTs
- * This is used internally for signing session tokens
- */
-export async function getPrivateKey() {
-  const keys = await getKeyPair();
-  return keys.privateKey;
+export async function getPrivateKey(): Promise<CryptoKey> {
+  const { privateKey } = await getKeyPair();
+  return privateKey;
+}
+
+export async function getKeyId(): Promise<string> {
+  const { keyId } = await getKeyPair();
+  return keyId;
+}
+
+export function clearKeyCache(): void {
+  cachedKeyPair = null;
 }

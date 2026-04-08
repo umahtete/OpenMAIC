@@ -10,24 +10,19 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
-# Install runtime dependencies only
-RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg openssl
+# Install runtime dependencies and Prisma CLI (needed for migrations)
+RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg openssl && \
+    npm install -g prisma@6.5.0
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy pre-built application
-COPY --chown=nextjs:nodejs .next/standalone ./
+# Copy pre-built application (standalone already includes all dependencies)
+# Note: standalone creates a nested folder matching the project name
+COPY --chown=nextjs:nodejs .next/standalone/openmaic_lti ./
 COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
-COPY --chown=nextjs:nodejs package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY --chown=nextjs:nodejs packages ./packages
-
-# Install production dependencies only (no devDependencies, no build tools)
-# Prisma client is already generated in the pre-built .next/standalone folder
-RUN corepack enable && corepack prepare pnpm@10.28.0 --activate && \
-    pnpm install --prod --ignore-scripts
 
 USER nextjs
 

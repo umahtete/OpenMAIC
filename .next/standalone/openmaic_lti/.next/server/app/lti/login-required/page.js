@@ -2,7 +2,7 @@ var R=require("../../../chunks/ssr/[turbopack]_runtime.js")("server/app/lti/logi
 R.c("server/chunks/ssr/[root-of-the-server]__92e6c523._.js")
 R.c("server/chunks/ssr/3f9d6_next_dist_f21b6820._.js")
 R.c("server/chunks/ssr/openmaic_lti_c5437d07._.js")
-R.c("server/chunks/ssr/[root-of-the-server]__f73a1344._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__d1d142e0._.js")
 R.c("server/chunks/ssr/3f9d6_next_dist_f86530fd._.js")
 R.c("server/chunks/ssr/1a128__pnpm_5aecec48._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__64db98e4._.js")

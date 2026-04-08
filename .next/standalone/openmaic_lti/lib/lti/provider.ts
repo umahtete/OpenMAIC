@@ -144,19 +144,17 @@ export function mapMoodleRoleToLuxUpRole(roles: string[]): OpenMAICRole {
     'http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#SecondaryInstructor': 'teacher',
   };
   
-  // Check each role
+  // Check each role - track highest role found
+  let highestRole: OpenMAICRole = 'student';
   for (const role of roles) {
     const mapped = ROLE_MAPPINGS[role];
     if (mapped) {
-      // Return admin if found, otherwise continue checking
-      if (mapped === 'admin') return 'admin';
-      if (mapped === 'teacher') continue; // Keep checking for admin
-      return mapped;
+      if (mapped === 'admin') return 'admin'; // Admin is always highest priority
+      if (mapped === 'teacher') highestRole = 'teacher'; // Track teacher but keep checking for admin
     }
   }
   
-  // Default to student
-  return 'student';
+  return highestRole;
 }
 
 /**

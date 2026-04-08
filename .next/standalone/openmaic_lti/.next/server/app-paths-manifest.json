@@ -38,5 +38,6 @@
   "/generation-preview/page": "app/generation-preview/page.js",
   "/icon/route": "app/icon/route.js",
   "/lti/login-required/page": "app/lti/login-required/page.js",
+  "/lti/select-content/page": "app/lti/select-content/page.js",
   "/page": "app/page.js"
 }

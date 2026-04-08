@@ -38,5 +38,6 @@
   "/generation-preview/page": "/generation-preview",
   "/icon/route": "/icon",
   "/lti/login-required/page": "/lti/login-required",
+  "/lti/select-content/page": "/lti/select-content",
   "/page": "/"
 }

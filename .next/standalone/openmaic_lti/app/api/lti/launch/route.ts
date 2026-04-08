@@ -65,6 +65,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify nonce matches the one stored during login initiation
+    const jwtNonce = jwtPayload.nonce as string | undefined;
+    if (!jwtNonce || jwtNonce !== stateData.nonce) {
+      console.error('[LTI] Nonce mismatch:', { expected: stateData.nonce, received: jwtNonce });
+      return NextResponse.json(
+        { error: 'Nonce mismatch - possible replay attack' },
+        { status: 401 }
+      );
+    }
+
     // Extract launch context from JWT payload
     const launchContext = extractLaunchContext(jwtPayload);
 

@@ -269,6 +269,12 @@
       "regex": "^/lti/login\\-required(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/lti/login\\-required(?:/)?$"
+    },
+    {
+      "page": "/lti/select-content",
+      "regex": "^/lti/select\\-content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/lti/select\\-content(?:/)?$"
     }
   ],
   "dataRoutes": [],
