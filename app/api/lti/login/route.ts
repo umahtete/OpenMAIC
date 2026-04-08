@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const nonce = generateNonce();
 
     // Store state with nonce for verification in callback
-    storeState(state, nonce);
+    await storeState(state, nonce);
 
     // Build the authentication request URL
     const authParams = new URLSearchParams({

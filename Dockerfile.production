@@ -24,6 +24,10 @@ COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
 
+# Regenerate Prisma client for the correct target platform (Alpine Linux)
+# This ensures the native query engine binary matches the container OS
+RUN npx prisma generate
+
 USER nextjs
 
 EXPOSE 3000

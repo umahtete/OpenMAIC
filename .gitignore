@@ -27,6 +27,8 @@ CLAUDE.local.md
 
 # next.js
 /.next/
+!/.next/standalone/
+!/.next/static/
 /out/
 
 # production
