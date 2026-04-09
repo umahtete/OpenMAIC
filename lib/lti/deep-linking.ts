@@ -5,7 +5,7 @@
 
 import { SignJWT } from 'jose';
 import { getLTIPlatformConfig, getLTIToolConfig, getSessionSecret } from './config';
-import { getPrivateKey, getKeyId } from '@/app/api/lti/keys/route';
+import { getPrivateKey, getKeyId } from '@/lib/lti/keys';
 
 interface DeepLinkingSettings {
   deep_link_return_url: string;

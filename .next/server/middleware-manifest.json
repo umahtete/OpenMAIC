@@ -3,49 +3,47 @@
   "middleware": {
     "/": {
       "files": [
-        "server/edge/chunks/[root-of-the-server]__4beb0308._.js",
-        "server/edge/chunks/1a128__pnpm_686bf2ee._.js",
-        "server/edge/chunks/openmaic_lti_d3acbfa0._.js",
-        "server/edge/chunks/98590_next_dist_esm_build_templates_edge-wrapper_d15f1369.js"
+        "server/edge-runtime-webpack.js",
+        "server/middleware.js"
       ],
       "name": "middleware",
       "page": "/",
       "matchers": [
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/classroom/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/classroom/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tutor(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tutor(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/tutor/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/chat(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/chat(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/chat/:path*"
         }
       ],
       "wasm": [
         {
-          "name": "wasm_da7cd21b3acf8cb1",
-          "filePath": "server/edge/chunks/00906__prisma_client_query_engine_bg_23ace1ce.wasm"
+          "name": "wasm_f4b69850bc2f6b02c2a186cea508d821c6b30f98",
+          "filePath": "server/edge-chunks/wasm_f4b69850bc2f6b02c2a186cea508d821c6b30f98.wasm"
         }
       ],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "6gMwZ7aRM0w7vS6zub88c",
-        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "rmgB1crAGOgM3pvUJeYvLhJVIQX28q7yxdAIONsZa7A=",
-        "__NEXT_PREVIEW_MODE_ID": "b50b55625b20937eca5b7fbe2b3bb890",
-        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "29d54f0bb05969085af71b871018662fcfaf41bfd420a76d48afb7f191af2cbe",
-        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "c4dc99c32932af787820ca485c93c16aec237a6bef4de9379f020a3f513508c7"
+        "__NEXT_BUILD_ID": "YYLUudRrSZPu6D0eotk5i",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "g0UJQXjS1DWQurAEsPPNAUtkTooV++tMUFRpLjdtOow=",
+        "__NEXT_PREVIEW_MODE_ID": "2822bfe80883eabc6b3f711804069412",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "721bf8e425c66c5f582fc392fad59dbdb24fadd93e8385c1ba820cc85ac1dc33",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "82373b3ea68f03ed3f60e80850e8e746ad487f6972251eadfeee1494c36f1c15"
       }
     }
   },
+  "functions": {},
   "sortedMiddleware": [
     "/"
-  ],
-  "functions": {}
+  ]
 }

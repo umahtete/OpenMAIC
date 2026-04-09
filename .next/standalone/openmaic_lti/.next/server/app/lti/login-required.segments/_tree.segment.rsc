@@ -1,7 +1,7 @@
-:HL["/_next/static/chunks/ce80a728a99d8070.css","style"]
-:HL["/_next/static/chunks/367f3331bf89cb01.css","style"]
-:HL["/_next/static/chunks/c828ab78d94ebcab.css","style"]
-:HL["/_next/static/media/GeistMono_Variable.p.2f937313.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-:HL["/_next/static/media/Geist_Variable-s.p.92592eb2.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-:HL["/_next/static/media/inter_latin_wght_normal-s.p.c757f81b.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"buildId":"6gMwZ7aRM0w7vS6zub88c","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"lti","paramType":null,"paramKey":"lti","hasRuntimePrefetch":false,"slots":{"children":{"name":"login-required","paramType":null,"paramKey":"login-required","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/_next/static/media/27834908180db20f-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/_next/static/media/6c596dfcddeca1e9-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/_next/static/media/78fec81b34c4a365.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/_next/static/css/d871729f076e6113.css","style"]
+:HL["/_next/static/css/26f62e7006fbcbdc.css","style"]
+:HL["/_next/static/css/cd5b9d5a1bf3e767.css","style"]
+0:{"buildId":"YYLUudRrSZPu6D0eotk5i","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"lti","paramType":null,"paramKey":"lti","hasRuntimePrefetch":false,"slots":{"children":{"name":"login-required","paramType":null,"paramKey":"login-required","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
