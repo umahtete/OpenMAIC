@@ -24,6 +24,14 @@ COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
 
+# Fix Prisma client module resolution:
+# The standalone output uses pnpm symlinks that don't resolve at runtime.
+# Remove the broken symlinks and install @prisma/client via npm for a flat structure,
+# then regenerate the client for Alpine Linux.
+RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma && \
+    npm install --no-save @prisma/client@6.19.3 && \
+    npx prisma generate
+
 USER nextjs
 
 EXPOSE 3000
