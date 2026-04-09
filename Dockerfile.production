@@ -2,6 +2,15 @@
 # Build locally first: pnpm build
 # Then deploy this Dockerfile with the .next folder
 
+# Stage 1: Install Prisma client for Alpine Linux in a clean directory
+FROM node:22-alpine AS prisma-deps
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /prisma
+RUN npm init -y && npm install @prisma/client@6.19.3
+COPY prisma/schema.prisma ./prisma/schema.prisma
+RUN npx prisma generate
+
+# Stage 2: Main application
 FROM node:22-alpine AS runner
 
 WORKDIR /app
@@ -24,13 +33,11 @@ COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
 
-# Fix Prisma client module resolution:
-# The standalone output uses pnpm symlinks that don't resolve at runtime.
-# Remove the broken symlinks and install @prisma/client via npm for a flat structure,
-# then regenerate the client for Alpine Linux.
-RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma && \
-    npm install --no-save @prisma/client@6.19.3 && \
-    npx prisma generate
+# Replace pnpm-style Prisma client with properly installed one from stage 1
+# This fixes module resolution: pnpm symlinks → flat npm directory
+RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma
+COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/.prisma ./node_modules/.prisma
+COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 
