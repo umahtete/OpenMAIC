@@ -33,6 +33,9 @@ COPY --chown=nextjs:nodejs .next/static ./.next/static
 COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs prisma ./prisma
 
+# Copy runtime files read via fs.readFileSync (not included in standalone output)
+COPY --chown=nextjs:nodejs lib/generation/prompts ./lib/generation/prompts
+
 # Replace pnpm-style Prisma client with properly installed one from stage 1
 # This fixes module resolution: pnpm symlinks → flat npm directory
 RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma
