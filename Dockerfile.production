@@ -39,8 +39,19 @@ RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma
 COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/.prisma ./node_modules/.prisma
 COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/@prisma ./node_modules/@prisma
 
+# Startup script: run migrations then start the server
+COPY --chown=nextjs:nodejs <<'EOF' /app/start.sh
+#!/bin/sh
+set -e
+echo "[startup] Running database migrations..."
+npx prisma migrate deploy
+echo "[startup] Starting server..."
+exec node server.js
+EOF
+RUN chmod +x /app/start.sh
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["/app/start.sh"]
