@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen, FileText, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { submitDeepLinkingResponse } from '@/lib/lti/deep-linking';
 import type { ContentItem } from '@/lib/deep-linking/types';
 
 const sampleContentItems: ContentItem[] = [
@@ -54,44 +53,78 @@ function SelectContentInner() {
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const deepLinkingSettings = searchParams.get('deep_linking_settings');
+  const deepLinkingSettingsRaw = searchParams.get('deep_linking_settings');
   const deploymentId = searchParams.get('deployment_id');
   const deepLinkReturnUrl = searchParams.get('deep_link_return_url');
 
   useEffect(() => {
-    if (!deepLinkingSettings && !deepLinkReturnUrl) {
+    if (!deepLinkReturnUrl) {
       setError('Missing deep linking parameters. Please launch from Moodle.');
     }
-  }, [deepLinkingSettings, deepLinkReturnUrl]);
+  }, [deepLinkReturnUrl]);
 
   const handleSelectItem = (item: ContentItem) => {
     setSelectedItem(item);
   };
 
   const handleSubmit = async () => {
-    if (!selectedItem) return;
+    if (!selectedItem || !deepLinkReturnUrl || !deploymentId) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const settings = {
-        deep_link_return_url: deepLinkReturnUrl || '',
-        accept_types: ['ltiResourceLink'],
-        data: deepLinkingSettings ? { deep_linking_settings: deepLinkingSettings } : undefined,
-      };
+      // Parse the data from deep_linking_settings query param (it's the original `data` from the launch)
+      let deepLinkingData: unknown = undefined;
+      if (deepLinkingSettingsRaw) {
+        try {
+          deepLinkingData = JSON.parse(deepLinkingSettingsRaw);
+        } catch {
+          // If it's not valid JSON, pass it as-is
+          deepLinkingData = deepLinkingSettingsRaw;
+        }
+      }
 
-      await submitDeepLinkingResponse(
-        settings,
-        selectedItem.url?.split('/').pop() || selectedItem.title.toLowerCase().replace(/\s+/g, '-'),
-        selectedItem.title,
-        selectedItem.type
-      );
+      // Call the server-side API to create the JWT
+      const response = await fetch('/api/lti/deep-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content_item: {
+            type: selectedItem.type,
+            title: selectedItem.title,
+            url: selectedItem.url,
+            text: selectedItem.text,
+            custom: selectedItem.custom,
+          },
+          deep_link_return_url: deepLinkReturnUrl,
+          deep_linking_settings_data: deepLinkingData,
+          deployment_id: deploymentId,
+        }),
+      });
 
-      setTimeout(() => {
-        window.close();
-      }, 2000);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || 'Failed to create deep linking response');
+      }
+
+      // Submit the JWT back to Moodle via a form POST
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = deepLinkReturnUrl;
+      form.style.display = 'none';
+
+      const jwtInput = document.createElement('input');
+      jwtInput.type = 'hidden';
+      jwtInput.name = 'JWT';
+      jwtInput.value = result.jwt;
+      form.appendChild(jwtInput);
+
+      document.body.appendChild(form);
+      form.submit();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add content');
       setIsSubmitting(false);
@@ -120,7 +153,7 @@ function SelectContentInner() {
     }
   };
 
-  if (error) {
+  if (error && !deepLinkReturnUrl) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-6 text-center">
@@ -156,6 +189,18 @@ function SelectContentInner() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
+            Content added successfully! This window will close automatically.
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2">
           {sampleContentItems.map((item) => (
             <button

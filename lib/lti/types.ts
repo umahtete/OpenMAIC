@@ -70,7 +70,16 @@ export interface LTILaunchContext {
   };
   
   // Deep linking
-  deepLinkingSettings?: string;
+  deepLinkingSettings?: {
+    deep_link_return_url: string;
+    accept_types?: string[];
+    accept_presentation_document_targets?: string[];
+    accept_multiple?: boolean;
+    auto_create?: boolean;
+    title?: string;
+    text?: string;
+    data?: unknown;
+  };
   
   // Assignment and Grade Services (AGS)
   endpoint?: {
@@ -232,7 +241,16 @@ export interface LTIJWTPayload {
   'https://purl.imsglobal.org/spec/lti/claim/custom'?: Record<string, string>;
   
   // Deep linking
-  'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'?: string;
+  'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'?: {
+    deep_link_return_url: string;
+    accept_types?: string[];
+    accept_presentation_document_targets?: string[];
+    accept_multiple?: boolean;
+    auto_create?: boolean;
+    title?: string;
+    text?: string;
+    data?: unknown;
+  };
   
   // AGS claims
   'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'?: {

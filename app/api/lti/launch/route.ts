@@ -112,8 +112,22 @@ export async function POST(request: NextRequest) {
     const toolUrl = process.env.LTI_TOOL_URL || '';
     
     if (messageType === 'LtiDeepLinkingRequest') {
-      // Deep linking - redirect to content selection page
-      redirectUrl = `${toolUrl}/lti/select-content`;
+      // Deep linking - redirect to content selection page with parameters
+      const dlSettings = launchContext.deepLinkingSettings;
+      const params = new URLSearchParams();
+      
+      if (dlSettings?.deep_link_return_url) {
+        params.set('deep_link_return_url', dlSettings.deep_link_return_url);
+      }
+      if (dlSettings?.data !== undefined) {
+        params.set('deep_linking_settings', JSON.stringify(dlSettings.data));
+      }
+      if (dlSettings?.accept_types) {
+        params.set('accept_types', dlSettings.accept_types.join(','));
+      }
+      params.set('deployment_id', launchContext.deploymentId);
+      
+      redirectUrl = `${toolUrl}/lti/select-content?${params.toString()}`;
     } else {
       // Standard launch - redirect to classroom or home
       // Check if custom parameters specify a classroom

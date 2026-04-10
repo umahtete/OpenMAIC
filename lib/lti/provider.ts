@@ -118,6 +118,38 @@ export function extractLaunchContext(payload: LTIJWTPayload): LTILaunchContext {
     // Custom parameters
     custom: payload['https://purl.imsglobal.org/spec/lti/claim/custom'],
     
+    // Launch presentation
+    launchPresentation: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation']
+      ? {
+          documentTarget: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].document_target,
+          height: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].height,
+          width: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].width,
+          returnUrl: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].return_url,
+          locale: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].locale,
+        }
+      : undefined,
+    
+    // Deep linking settings
+    deepLinkingSettings: payload['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'],
+    
+    // Assignment and Grade Services (AGS)
+    endpoint: payload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint']
+      ? {
+          lineItems: payload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'].lineitems,
+          lineItem: payload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'].lineitem,
+          scores: payload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'].scores,
+          results: payload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'].results,
+        }
+      : undefined,
+    
+    // Names Role Provisioning Service (NRPS)
+    namesRoleService: payload['https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice']
+      ? {
+          contextMembershipsUrl: payload['https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice'].context_memberships_url,
+          serviceVersions: payload['https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice'].service_versions,
+        }
+      : undefined,
+    
     // Timestamps
     issuedAt: payload.iat,
     expiresAt: payload.exp,
