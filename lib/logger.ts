@@ -1,13 +1,18 @@
 const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 } as const;
 type LogLevel = keyof typeof LOG_LEVELS;
 
+function getEnvVar(name: string): string | undefined {
+  if (typeof process === 'undefined' || !process.env) return undefined;
+  return process.env[name];
+}
+
 function getMinLevel(): LogLevel {
-  const env = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
+  const env = (getEnvVar('LOG_LEVEL') ?? 'info').toLowerCase();
   return env in LOG_LEVELS ? (env as LogLevel) : 'info';
 }
 
 function isJsonFormat(): boolean {
-  return process.env.LOG_FORMAT === 'json';
+  return getEnvVar('LOG_FORMAT') === 'json';
 }
 
 function formatLine(level: LogLevel, tag: string, args: unknown[]): string {
