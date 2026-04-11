@@ -4,6 +4,8 @@ export interface LtiStateRecord {
   id: string;
   state: string;
   nonce: string;
+  isDeepLinking: boolean;
+  deepLinkingData: string | null;
   expiresAt: Date;
   createdAt: Date;
 }
@@ -11,6 +13,8 @@ export interface LtiStateRecord {
 export interface CreateStateData {
   state: string;
   nonce: string;
+  isDeepLinking?: boolean;
+  deepLinkingData?: string;
   expiresAt: Date;
 }
 
@@ -19,6 +23,8 @@ export async function createState(data: CreateStateData): Promise<LtiStateRecord
     data: {
       state: data.state,
       nonce: data.nonce,
+      isDeepLinking: data.isDeepLinking ?? false,
+      deepLinkingData: data.deepLinkingData ?? null,
       expiresAt: data.expiresAt,
     },
   });
@@ -30,7 +36,7 @@ export async function getStateByState(state: string): Promise<LtiStateRecord | n
   });
 }
 
-export async function getAndDeleteState(state: string): Promise<{ nonce: string } | null> {
+export async function getAndDeleteState(state: string): Promise<{ nonce: string; isDeepLinking: boolean; deepLinkingData: string | null } | null> {
   const stored = await prisma.ltiState.findUnique({
     where: { state },
   });
@@ -48,7 +54,11 @@ export async function getAndDeleteState(state: string): Promise<{ nonce: string 
     return null;
   }
 
-  return { nonce: stored.nonce };
+  return {
+    nonce: stored.nonce,
+    isDeepLinking: stored.isDeepLinking,
+    deepLinkingData: stored.deepLinkingData,
+  };
 }
 
 export async function deleteState(state: string): Promise<void> {

@@ -53,11 +53,13 @@ model LtiSession {
 }
 
 model LtiState {
-  id        String   @id @default(cuid())
-  state     String   @unique
-  nonce     String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  state           String   @unique
+  nonce           String
+  isDeepLinking   Boolean  @default(false)
+  deepLinkingData String?  @db.Text
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
 
   @@index([state])
   @@index([expiresAt])

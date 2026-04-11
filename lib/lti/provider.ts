@@ -277,12 +277,19 @@ export function generateNonce(): string {
 /**
  * Store state temporarily using database
  */
-export async function storeState(state: string, nonce: string): Promise<void> {
+export async function storeState(
+  state: string,
+  nonce: string,
+  isDeepLinking: boolean = false,
+  deepLinkingData: string | null = null
+): Promise<void> {
   const { createState, cleanExpiredStates } = await import('./stores/state-store');
   
   await createState({
     state,
     nonce,
+    isDeepLinking,
+    deepLinkingData: deepLinkingData ?? undefined,
     expiresAt: new Date(Date.now() + LTI_CONFIG.state.maxAge),
   });
   
@@ -290,7 +297,7 @@ export async function storeState(state: string, nonce: string): Promise<void> {
   await cleanExpiredStates();
 }
 
-export async function getAndDeleteState(state: string): Promise<{ nonce: string } | null> {
+export async function getAndDeleteState(state: string): Promise<{ nonce: string; isDeepLinking: boolean; deepLinkingData: string | null } | null> {
   const { getAndDeleteState: dbGetAndDeleteState } = await import('./stores/state-store');
   return dbGetAndDeleteState(state);
 }

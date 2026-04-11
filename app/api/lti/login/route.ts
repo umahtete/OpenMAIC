@@ -50,6 +50,11 @@ export async function GET(request: NextRequest) {
       clientId,
     });
 
+    // Detect deep linking from the lti_message_hint
+    // Moodle's contentitem.php sends: {"launchid":"ltilaunch_ContentItemSelectionRequest..."}
+    // Regular launch sends: {"cmid":5,"launchid":"ltilaunch1_..."}
+    const isDeepLinking = ltiMessageHint?.includes('ContentItemSelectionRequest') ?? false;
+
     // Validate required parameters
     if (!loginHint) {
       return NextResponse.json(
@@ -68,7 +73,13 @@ export async function GET(request: NextRequest) {
     const nonce = generateNonce();
 
     // Store state with nonce for verification in callback
-    await storeState(state, nonce);
+    // Also store whether this is a deep linking request (detected from lti_message_hint)
+    await storeState(state, nonce, isDeepLinking, ltiMessageHint || null);
+
+    console.log('[LTI] Stored state:', {
+      state: state.substring(0, 8) + '...',
+      isDeepLinking,
+    });
 
     // Build the authentication request URL
     const authParams = new URLSearchParams({

@@ -138,35 +138,59 @@ export async function POST(request: NextRequest) {
       console.warn('[LTI] User provisioning failed (non-fatal):', provError);
     }
 
-    // Determine redirect URL based on message type
+    // Determine redirect URL based on message type AND stored deep linking flag
+    // IMPORTANT: Moodle may send LtiResourceLinkRequest even for deep linking due to
+    // session cookie issues in iframe context. We detect deep linking from the
+    // lti_message_hint during login and store the flag in the state.
     let redirectUrl: string;
     
     const messageType = launchContext.messageType;
     const toolUrl = process.env.LTI_TOOL_URL || '';
+    const isDeepLinkingFromState = stateData.isDeepLinking;
+    const isDeepLinkingFromJWT = messageType === 'LtiDeepLinkingRequest';
+    const isDeepLinking = isDeepLinkingFromJWT || isDeepLinkingFromState;
     
-    if (messageType === 'LtiDeepLinkingRequest') {
+    console.log('[LTI] Deep linking detection:', {
+      messageType,
+      isDeepLinkingFromJWT,
+      isDeepLinkingFromState,
+      finalDecision: isDeepLinking,
+    });
+    
+    if (isDeepLinking) {
       // Deep linking - redirect to content selection page with parameters
       const dlSettings = launchContext.deepLinkingSettings;
       console.log('[LTI] Deep linking request. Settings:', {
         hasReturnUrl: !!dlSettings?.deep_link_return_url,
         hasData: dlSettings?.data !== undefined,
         deploymentId: launchContext.deploymentId,
+        fromJWT: isDeepLinkingFromJWT,
+        fromState: isDeepLinkingFromState,
       });
 
-      if (!dlSettings?.deep_link_return_url) {
+      const params = new URLSearchParams();
+      params.set('deployment_id', launchContext.deploymentId);
+
+      if (dlSettings?.deep_link_return_url) {
+        // JWT has proper deep linking settings (LtiDeepLinkingRequest)
+        params.set('deep_link_return_url', dlSettings.deep_link_return_url);
+        if (dlSettings.data !== undefined) {
+          params.set('deep_linking_settings', JSON.stringify(dlSettings.data));
+        }
+        if (dlSettings.accept_types) {
+          params.set('accept_types', dlSettings.accept_types.join(','));
+        }
+      } else if (isDeepLinkingFromState) {
+        // Moodle sent LtiResourceLinkRequest but we detected deep linking from lti_message_hint
+        // Construct the return URL using Moodle's contentitem.php endpoint
+        const platformUrl = process.env.LTI_PLATFORM_URL || 'https://courses.luxuptraining.com';
+        const returnUrl = `${platformUrl}/mod/lti/contentitem.php`;
+        params.set('deep_link_return_url', returnUrl);
+        console.log('[LTI] Constructed deep_link_return_url:', returnUrl);
+      } else {
         console.error('[LTI] Missing deep_link_return_url in deep linking settings');
         return htmlError('Configuration Error', 'Deep linking settings are missing the return URL. Please check the LTI tool configuration in Moodle.', 400);
       }
-
-      const params = new URLSearchParams();
-      params.set('deep_link_return_url', dlSettings.deep_link_return_url);
-      if (dlSettings.data !== undefined) {
-        params.set('deep_linking_settings', JSON.stringify(dlSettings.data));
-      }
-      if (dlSettings.accept_types) {
-        params.set('accept_types', dlSettings.accept_types.join(','));
-      }
-      params.set('deployment_id', launchContext.deploymentId);
       
       redirectUrl = `${toolUrl}/lti/select-content?${params.toString()}`;
       console.log('[LTI] Redirecting to select-content:', redirectUrl);
