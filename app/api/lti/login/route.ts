@@ -44,7 +44,9 @@ export async function GET(request: NextRequest) {
       iss,
       loginHint: loginHint?.substring(0, 20),
       targetLinkUri,
-      hasMessageHint: !!ltiMessageHint,
+      ltiMessageHint: ltiMessageHint?.substring(0, 100),
+      isDeepLinkingHint: ltiMessageHint?.includes('ContentItemSelectionRequest') ?? false,
+      hasCmid: ltiMessageHint?.includes('cmid') ?? false,
       clientId,
     });
 
