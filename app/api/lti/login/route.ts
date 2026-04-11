@@ -40,6 +40,14 @@ export async function GET(request: NextRequest) {
     const ltiMessageHint = searchParams.get('lti_message_hint');
     const clientId = searchParams.get('client_id');
 
+    console.log('[LTI] OIDC login initiation received:', {
+      iss,
+      loginHint: loginHint?.substring(0, 20),
+      targetLinkUri,
+      hasMessageHint: !!ltiMessageHint,
+      clientId,
+    });
+
     // Validate required parameters
     if (!loginHint) {
       return NextResponse.json(

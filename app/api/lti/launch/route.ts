@@ -10,8 +10,36 @@ import {
   createLTISession,
   LTISessionData
 } from '@/lib/lti/provider';
-import { LTI_CONFIG, getSessionSecret } from '@/lib/lti/config';
-import { provisionUserFromLTI } from '@/lib/user-provisioning/service';
+import { LTI_CONFIG } from '@/lib/lti/config';
+
+/**
+ * Return an HTML error page that can be displayed inside Moodle's iframe.
+ * JSON responses show as "undefined" in Moodle's modal.
+ */
+function htmlError(title: string, message: string, status: number = 500): NextResponse {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>${title}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f8f9fa; color: #1e3a5f; }
+  .error-card { background: white; border-radius: 12px; padding: 2rem; max-width: 480px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+  .error-card h2 { margin: 0 0 0.5rem; color: #dc2626; }
+  .error-card p { margin: 0 0 1rem; color: #64748b; font-size: 0.9rem; }
+  .error-card code { background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+  <div class="error-card">
+    <h2>${title}</h2>
+    <p>${message}</p>
+  </div>
+</body>
+</html>`;
+  return new NextResponse(html, {
+    status,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
 
 /**
  * POST /api/lti/launch
@@ -24,6 +52,8 @@ import { provisionUserFromLTI } from '@/lib/user-provisioning/service';
  * 4. Redirects to the appropriate content
  */
 export async function POST(request: NextRequest) {
+  console.log('[LTI] Launch request received from:', request.headers.get('origin') || 'unknown');
+
   try {
     const formData = await request.formData();
     const idToken = formData.get('id_token')?.toString();
@@ -31,52 +61,51 @@ export async function POST(request: NextRequest) {
 
     // Validate required parameters
     if (!idToken) {
-      return NextResponse.json(
-        { error: 'Missing id_token' },
-        { status: 400 }
-      );
+      console.error('[LTI] Missing id_token in launch request');
+      return htmlError('Missing Token', 'No id_token was received from the platform. Please try launching again.', 400);
     }
 
     if (!state) {
-      return NextResponse.json(
-        { error: 'Missing state' },
-        { status: 400 }
-      );
+      console.error('[LTI] Missing state in launch request');
+      return htmlError('Missing State', 'No state parameter was received. The session may have expired.', 400);
     }
 
     // Verify state and get nonce
+    console.log('[LTI] Verifying state:', state.substring(0, 8) + '...');
     const stateData = await getAndDeleteState(state);
     if (!stateData) {
-      return NextResponse.json(
-        { error: 'Invalid or expired state' },
-        { status: 400 }
-      );
+      console.error('[LTI] State not found or expired:', state.substring(0, 8) + '...');
+      return htmlError('Invalid or Expired Session', 'The login session has expired or is invalid. Please close this window and try again.', 400);
     }
 
     // Verify the LTI token
     let jwtPayload;
     try {
       jwtPayload = await verifyLTIToken(idToken);
+      console.log('[LTI] Token verified successfully. Message type:', jwtPayload['https://purl.imsglobal.org/spec/lti/claim/message_type']);
     } catch (error) {
       console.error('[LTI] Token verification failed:', error);
-      return NextResponse.json(
-        { error: 'Token verification failed', message: error instanceof Error ? error.message : 'Unknown error' },
-        { status: 401 }
-      );
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      return htmlError('Token Verification Failed', msg, 401);
     }
 
     // Verify nonce matches the one stored during login initiation
     const jwtNonce = jwtPayload.nonce as string | undefined;
     if (!jwtNonce || jwtNonce !== stateData.nonce) {
       console.error('[LTI] Nonce mismatch:', { expected: stateData.nonce, received: jwtNonce });
-      return NextResponse.json(
-        { error: 'Nonce mismatch - possible replay attack' },
-        { status: 401 }
-      );
+      return htmlError('Security Error', 'Nonce mismatch — possible replay attack. Please try again.', 401);
     }
 
     // Extract launch context from JWT payload
     const launchContext = extractLaunchContext(jwtPayload);
+    console.log('[LTI] Launch context:', {
+      messageType: launchContext.messageType,
+      userId: launchContext.userId,
+      contextId: launchContext.contextId,
+      contextTitle: launchContext.contextTitle,
+      hasDeepLinkingSettings: !!launchContext.deepLinkingSettings,
+      deepLinkReturnUrl: launchContext.deepLinkingSettings?.deep_link_return_url,
+    });
 
     // Extract and map role
     const role = mapMoodleRoleToLuxUpRole(launchContext.roles);
@@ -97,13 +126,17 @@ export async function POST(request: NextRequest) {
     // Create session token
     const sessionToken = await createLTISession(sessionData);
 
-    // Provision the user in OpenMAIC
-    const provisioningResult = await provisionUserFromLTI(sessionData);
-
-    console.log('[LTI] User provisioned:', {
-      userId: provisioningResult.user.id,
-      isNew: provisioningResult.isNew,
-    });
+    // Try to provision the user (non-blocking — don't fail the launch if this fails)
+    try {
+      const { provisionUserFromLTI } = await import('@/lib/user-provisioning/service');
+      const provisioningResult = await provisionUserFromLTI(sessionData);
+      console.log('[LTI] User provisioned:', {
+        userId: provisioningResult.user.id,
+        isNew: provisioningResult.isNew,
+      });
+    } catch (provError) {
+      console.warn('[LTI] User provisioning failed (non-fatal):', provError);
+    }
 
     // Determine redirect URL based on message type
     let redirectUrl: string;
@@ -114,31 +147,39 @@ export async function POST(request: NextRequest) {
     if (messageType === 'LtiDeepLinkingRequest') {
       // Deep linking - redirect to content selection page with parameters
       const dlSettings = launchContext.deepLinkingSettings;
-      const params = new URLSearchParams();
-      
-      if (dlSettings?.deep_link_return_url) {
-        params.set('deep_link_return_url', dlSettings.deep_link_return_url);
+      console.log('[LTI] Deep linking request. Settings:', {
+        hasReturnUrl: !!dlSettings?.deep_link_return_url,
+        hasData: dlSettings?.data !== undefined,
+        deploymentId: launchContext.deploymentId,
+      });
+
+      if (!dlSettings?.deep_link_return_url) {
+        console.error('[LTI] Missing deep_link_return_url in deep linking settings');
+        return htmlError('Configuration Error', 'Deep linking settings are missing the return URL. Please check the LTI tool configuration in Moodle.', 400);
       }
-      if (dlSettings?.data !== undefined) {
+
+      const params = new URLSearchParams();
+      params.set('deep_link_return_url', dlSettings.deep_link_return_url);
+      if (dlSettings.data !== undefined) {
         params.set('deep_linking_settings', JSON.stringify(dlSettings.data));
       }
-      if (dlSettings?.accept_types) {
+      if (dlSettings.accept_types) {
         params.set('accept_types', dlSettings.accept_types.join(','));
       }
       params.set('deployment_id', launchContext.deploymentId);
       
       redirectUrl = `${toolUrl}/lti/select-content?${params.toString()}`;
+      console.log('[LTI] Redirecting to select-content:', redirectUrl);
     } else {
       // Standard launch - redirect to classroom or home
-      // Check if custom parameters specify a classroom
       const classroomId = launchContext.custom?.classroom_id;
       
       if (classroomId) {
         redirectUrl = `${toolUrl}/classroom/${classroomId}`;
       } else {
-        // Redirect to home page with session
         redirectUrl = `${toolUrl}/?lti=1`;
       }
+      console.log('[LTI] Standard launch redirect:', redirectUrl);
     }
 
     // Create response with session cookie
@@ -153,21 +194,18 @@ export async function POST(request: NextRequest) {
       maxAge: LTI_CONFIG.session.maxAge,
     });
 
-    // Log successful launch
     console.log('[LTI] Successful launch:', {
       userId: sessionData.userId,
       role: sessionData.role,
       contextId: sessionData.contextId,
-      contextTitle: sessionData.contextTitle,
+      messageType,
     });
 
     return response;
   } catch (error) {
-    console.error('[LTI] Launch failed:', error);
-    return NextResponse.json(
-      { error: 'Launch failed', message: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    console.error('[LTI] Launch failed with unhandled error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return htmlError('Launch Failed', `An unexpected error occurred: ${msg}`, 500);
   }
 }
 
