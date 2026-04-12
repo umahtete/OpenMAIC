@@ -1,27 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyLTISession } from '@/lib/lti/provider';
-import { submitGrade } from '@/lib/grades/service';
+import { submitGrade, submitGradeToMoodle } from '@/lib/grades/service';
+import { getScoresUrlForResourceLink } from '@/lib/lti/stores/line-item-store';
 import { GradePayload } from '@/lib/grades/types';
 
 /**
  * POST /api/grades/submit
- * Submit a grade to Moodle
+ * Submit a grade to Moodle via AGS, with local fallback
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get session token from cookie
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('openmaic_lti_session');
-    
+
     if (!sessionToken) {
       return NextResponse.json(
         { error: 'No LTI session found' },
         { status: 401 }
       );
     }
-    
-    // Verify session
+
     const session = await verifyLTISession(sessionToken.value);
     if (!session) {
       return NextResponse.json(
@@ -29,10 +28,9 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-    
-    // Parse grade payload from request body
+
     const body = await request.json();
-    
+
     const grade: GradePayload = {
       scoreGiven: body.scoreGiven,
       scoreMaximum: body.scoreMaximum || 100,
@@ -42,10 +40,24 @@ export async function POST(request: NextRequest) {
       userId: session.userId,
       comment: body.comment,
     };
-    
-    // Submit grade
-    const result = await submitGrade(session, grade);
-    
+
+    let result;
+
+    if (session.resourceLinkId) {
+      const scoresUrl = await getScoresUrlForResourceLink(session.resourceLinkId);
+
+      if (scoresUrl) {
+        console.log('[Grades API] Found stored scores URL for resource link:', session.resourceLinkId);
+        result = await submitGradeToMoodle(scoresUrl, session, grade);
+      } else {
+        console.log('[Grades API] No stored scores URL for resource link, storing locally only');
+        result = await submitGrade(session, grade);
+      }
+    } else {
+      console.log('[Grades API] No resourceLinkId in session, storing locally only');
+      result = await submitGrade(session, grade);
+    }
+
     if (result.success) {
       return NextResponse.json({
         success: true,

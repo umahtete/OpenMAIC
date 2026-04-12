@@ -3,9 +3,11 @@
  * Sends grades back to Moodle via LTI AGS (Assignment and Grade Services)
  */
 
+import { SignJWT } from 'jose';
 import { GradePayload, GradePassbackResult, LineItem } from './types';
 import { LTISessionData } from '@/lib/lti/provider';
 import { getLTIPlatformConfig } from '@/lib/lti/config';
+import { getPrivateKey, getKeyId } from '@/lib/lti/keys';
 import {
   createGrade,
   getGradesByUserId,
@@ -20,11 +22,28 @@ import {
 export type { ActivityProgress, GradingProgress };
 
 /**
- * Get OAuth2 access token from Moodle for AGS API calls
+ * Get OAuth2 access token from Moodle for AGS API calls.
+ * Uses JWT assertion authentication (LTI 1.3 standard) — signs a JWT with
+ * the tool's Ed25519 private key and sends it as client_assertion.
  */
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(scope: string): Promise<string> {
   const platformConfig = getLTIPlatformConfig();
-  
+  const privateKey = await getPrivateKey();
+  const kid = await getKeyId();
+  const now = Math.floor(Date.now() / 1000);
+
+  // Build the client_assertion JWT per RFC 7523 / LTI 1.3
+  const clientAssertion = await new SignJWT({
+    iss: platformConfig.clientId,
+    sub: platformConfig.clientId,
+    aud: platformConfig.tokenEndpoint,
+    jti: crypto.randomUUID(),
+  })
+    .setProtectedHeader({ alg: 'EdDSA', kid })
+    .setIssuedAt(now)
+    .setExpirationTime(now + 60) // 60 seconds
+    .sign(privateKey);
+
   const response = await fetch(platformConfig.tokenEndpoint, {
     method: 'POST',
     headers: {
@@ -33,8 +52,9 @@ async function getAccessToken(): Promise<string> {
     body: new URLSearchParams({
       grant_type: 'client_credentials',
       client_id: platformConfig.clientId,
-      client_secret: process.env.LTI_CLIENT_SECRET || '',
-      scope: 'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+      client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      client_assertion: clientAssertion,
+      scope,
     }),
   });
 
@@ -140,7 +160,7 @@ export async function submitGradeToMoodle(
 ): Promise<GradePassbackResult> {
   try {
     // Get access token
-    const accessToken = await getAccessToken();
+    const accessToken = await getAccessToken('https://purl.imsglobal.org/spec/lti-ags/scope/score');
     
     // Submit to Moodle
     await submitScoreToMoodle(

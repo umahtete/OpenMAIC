@@ -138,6 +138,27 @@ export async function POST(request: NextRequest) {
       console.warn('[LTI] User provisioning failed (non-fatal):', provError);
     }
 
+    // Store AGS endpoint URLs for grade passback (non-blocking)
+    if (launchContext.resourceLinkId && launchContext.endpoint) {
+      try {
+        const { upsertAgsEndpoints } = await import('@/lib/lti/stores/line-item-store');
+        await upsertAgsEndpoints(
+          launchContext.contextId,
+          launchContext.resourceLinkId,
+          launchContext.endpoint,
+          launchContext.contextTitle
+        );
+        console.log('[LTI] AGS endpoints stored for resource link:', launchContext.resourceLinkId, {
+          scores: !!launchContext.endpoint.scores,
+          results: !!launchContext.endpoint.results,
+          lineItems: !!launchContext.endpoint.lineItems,
+          lineItem: !!launchContext.endpoint.lineItem,
+        });
+      } catch (agsError) {
+        console.warn('[LTI] Failed to store AGS endpoints (non-fatal):', agsError);
+      }
+    }
+
     // Determine redirect URL based on message type AND stored deep linking flag
     // IMPORTANT: Moodle may send LtiResourceLinkRequest even for deep linking due to
     // session cookie issues in iframe context. We detect deep linking from the
