@@ -42,12 +42,14 @@ RUN rm -rf node_modules/@prisma node_modules/.pnpm/@prisma* node_modules/.prisma
 COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/.prisma ./node_modules/.prisma
 COPY --chown=nextjs:nodejs --from=prisma-deps /prisma/node_modules/@prisma ./node_modules/@prisma
 
-# Startup script: create data dirs, run migrations, then start the server
+# Create data directories with proper ownership (before switching to nextjs user)
+RUN mkdir -p /app/data/classrooms /app/data/classroom-jobs && \
+    chown -R nextjs:nodejs /app/data
+
+# Startup script: run migrations then start the server
 COPY --chown=nextjs:nodejs <<'EOF' /app/start.sh
 #!/bin/sh
 set -e
-echo "[startup] Creating data directories..."
-mkdir -p /app/data/classrooms /app/data/classroom-jobs
 echo "[startup] Running database migrations..."
 npx prisma migrate deploy
 echo "[startup] Starting server..."
