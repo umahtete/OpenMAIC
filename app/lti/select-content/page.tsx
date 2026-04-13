@@ -6,32 +6,12 @@ import { BookOpen, FileText, CheckCircle, ArrowRight, Loader2 } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import type { ContentItem } from '@/lib/deep-linking/types';
 
-const sampleContentItems: ContentItem[] = [
-  {
-    type: 'ltiResourceLink',
-    title: 'Introduction to Biblical Studies',
-    text: 'Learn the foundations of biblical interpretation and study methods.',
-    url: '/classroom/biblical-studies-intro',
-  },
-  {
-    type: 'ltiResourceLink',
-    title: 'Church History Overview',
-    text: 'Explore the major events and figures in Christian church history.',
-    url: '/classroom/church-history',
-  },
-  {
-    type: 'ltiResourceLink',
-    title: 'Theology Fundamentals',
-    text: 'Understand core theological concepts and doctrines.',
-    url: '/classroom/theology-fundamentals',
-  },
-  {
-    type: 'ltiResourceLink',
-    title: 'Prayer and Spiritual Practices',
-    text: 'Develop a deeper prayer life and spiritual disciplines.',
-    url: '/classroom/prayer-practices',
-  },
-];
+interface ClassroomSummary {
+  id: string;
+  title: string;
+  description?: string;
+  createdAt?: string;
+}
 
 export default function SelectContentPage() {
   return (
@@ -54,6 +34,8 @@ function SelectContentInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const deepLinkingSettingsRaw = searchParams.get('deep_linking_settings');
   const deploymentId = searchParams.get('deployment_id');
@@ -62,7 +44,47 @@ function SelectContentInner() {
   useEffect(() => {
     if (!deepLinkReturnUrl) {
       setError('Missing deep linking parameters. Please launch from Moodle.');
+      setIsLoading(false);
+      return;
     }
+
+    async function fetchClassrooms() {
+      try {
+        const res = await fetch('/api/classroom');
+        const data = await res.json();
+        if (data.success && data.data?.classrooms?.length > 0) {
+          const items: ContentItem[] = data.data.classrooms.map((c: ClassroomSummary) => ({
+            type: 'ltiResourceLink',
+            title: c.title,
+            text: c.description || `Course created ${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}`,
+            url: `/classroom/${c.id}`,
+          }));
+          setContentItems(items);
+        } else {
+          setContentItems([
+            {
+              type: 'ltiResourceLink',
+              title: 'LuxUp AI Tutor',
+              text: 'Launch the AI-powered personalized education platform.',
+              url: '/',
+            },
+          ]);
+        }
+      } catch {
+        setContentItems([
+          {
+            type: 'ltiResourceLink',
+            title: 'LuxUp AI Tutor',
+            text: 'Launch the AI-powered personalized education platform.',
+            url: '/',
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchClassrooms();
   }, [deepLinkReturnUrl]);
 
   const handleSelectItem = (item: ContentItem) => {
@@ -202,7 +224,17 @@ function SelectContentInner() {
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
-          {sampleContentItems.map((item) => (
+          {isLoading ? (
+            <div className="col-span-2 flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+              <span className="text-muted-foreground">Loading courses...</span>
+            </div>
+          ) : contentItems.length === 0 ? (
+            <div className="col-span-2 text-center py-12 text-muted-foreground">
+              No courses available yet. Create courses in LuxUp AI Tutor first.
+            </div>
+          ) : (
+            contentItems.map((item) => (
             <button
               key={item.title}
               onClick={() => handleSelectItem(item)}
@@ -232,7 +264,8 @@ function SelectContentInner() {
                 )}
               </div>
             </button>
-          ))}
+            ))
+          )}
         </div>
 
         <div className="mt-8 flex justify-end gap-3">

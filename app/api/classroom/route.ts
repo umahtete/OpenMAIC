@@ -4,6 +4,7 @@ import { apiSuccess, apiError, API_ERROR_CODES } from '@/lib/server/api-response
 import {
   buildRequestOrigin,
   isValidClassroomId,
+  listClassrooms,
   persistClassroom,
   readClassroom,
 } from '@/lib/server/classroom-storage';
@@ -41,24 +42,21 @@ export async function GET(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get('id');
 
-    if (!id) {
-      return apiError(
-        API_ERROR_CODES.MISSING_REQUIRED_FIELD,
-        400,
-        'Missing required parameter: id',
-      );
+    if (id) {
+      if (!isValidClassroomId(id)) {
+        return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'Invalid classroom id');
+      }
+
+      const classroom = await readClassroom(id);
+      if (!classroom) {
+        return apiError(API_ERROR_CODES.INVALID_REQUEST, 404, 'Classroom not found');
+      }
+
+      return apiSuccess({ classroom });
     }
 
-    if (!isValidClassroomId(id)) {
-      return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'Invalid classroom id');
-    }
-
-    const classroom = await readClassroom(id);
-    if (!classroom) {
-      return apiError(API_ERROR_CODES.INVALID_REQUEST, 404, 'Classroom not found');
-    }
-
-    return apiSuccess({ classroom });
+    const classrooms = await listClassrooms();
+    return apiSuccess({ classrooms });
   } catch (error) {
     return apiError(
       API_ERROR_CODES.INTERNAL_ERROR,

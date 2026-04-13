@@ -45,6 +45,35 @@ export function isValidClassroomId(id: string): boolean {
   return /^[a-zA-Z0-9_-]+$/.test(id);
 }
 
+export async function listClassrooms(): Promise<Array<{ id: string; title: string; description?: string; createdAt?: string }>> {
+  await ensureClassroomsDir();
+  try {
+    const files = await fs.readdir(CLASSROOMS_DIR);
+    const classrooms: Array<{ id: string; title: string; description?: string; createdAt?: string }> = [];
+
+    for (const file of files) {
+      if (!file.endsWith('.json')) continue;
+      try {
+        const content = await fs.readFile(path.join(CLASSROOMS_DIR, file), 'utf-8');
+        const data = JSON.parse(content) as PersistedClassroomData;
+        classrooms.push({
+          id: data.id,
+          title: data.stage?.name || data.id,
+          description: data.stage?.description,
+          createdAt: data.createdAt,
+        });
+      } catch {
+        // skip malformed files
+      }
+    }
+
+    classrooms.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    return classrooms;
+  } catch {
+    return [];
+  }
+}
+
 export async function readClassroom(id: string): Promise<PersistedClassroomData | null> {
   const filePath = path.join(CLASSROOMS_DIR, `${id}.json`);
   try {
