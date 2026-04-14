@@ -219,9 +219,18 @@ export async function POST(request: NextRequest) {
       // Standard launch - redirect to the specific content or home
       if (launchContext.targetLinkUri) {
         let uri = launchContext.targetLinkUri;
-        // Ensure absolute URL — Moodle may resolve relative URLs against its own domain
-        if (!uri.startsWith('http')) {
-          uri = `${toolUrl}${uri.startsWith('/') ? '' : '/'}${uri}`;
+        try {
+          const parsed = new URL(uri);
+          // If the domain isn't our tool, extract just the path and use our tool URL
+          if (parsed.hostname !== new URL(toolUrl).hostname) {
+            uri = `${toolUrl}${parsed.pathname}${parsed.search}`;
+            console.log('[LTI] Corrected target_link_uri domain:', launchContext.targetLinkUri, '→', uri);
+          }
+        } catch {
+          // Not a valid URL — treat as relative path
+          if (!uri.startsWith('http')) {
+            uri = `${toolUrl}${uri.startsWith('/') ? '' : '/'}${uri}`;
+          }
         }
         redirectUrl = uri;
       } else {
