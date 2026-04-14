@@ -118,6 +118,9 @@ export function extractLaunchContext(payload: LTIJWTPayload): LTILaunchContext {
     // Custom parameters
     custom: payload['https://purl.imsglobal.org/spec/lti/claim/custom'],
     
+    // Target link URI (from deep linking - the specific content URL)
+    targetLinkUri: payload['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'] || '',
+    
     // Launch presentation
     launchPresentation: payload['https://purl.imsglobal.org/spec/lti/claim/launch_presentation']
       ? {

@@ -216,13 +216,16 @@ export async function POST(request: NextRequest) {
       redirectUrl = `${toolUrl}/lti/select-content?${params.toString()}`;
       console.log('[LTI] Redirecting to select-content:', redirectUrl);
     } else {
-      // Standard launch - redirect to classroom or home
-      const classroomId = launchContext.custom?.classroom_id;
-      
-      if (classroomId) {
-        redirectUrl = `${toolUrl}/classroom/${classroomId}`;
+      // Standard launch - redirect to the specific content or home
+      if (launchContext.targetLinkUri) {
+        redirectUrl = launchContext.targetLinkUri;
       } else {
-        redirectUrl = `${toolUrl}/?lti=1`;
+        const classroomId = launchContext.custom?.classroom_id;
+        if (classroomId) {
+          redirectUrl = `${toolUrl}/classroom/${classroomId}`;
+        } else {
+          redirectUrl = `${toolUrl}/?lti=1`;
+        }
       }
       console.log('[LTI] Standard launch redirect:', redirectUrl);
     }

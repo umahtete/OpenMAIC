@@ -60,6 +60,9 @@ export interface LTILaunchContext {
   // Custom parameters
   custom?: Record<string, string>;
   
+  // Target link URI (set by deep linking - tells tool where to redirect)
+  targetLinkUri?: string;
+  
   // Launch presentation
   launchPresentation?: {
     documentTarget?: string;
