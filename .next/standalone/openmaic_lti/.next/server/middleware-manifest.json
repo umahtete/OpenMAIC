@@ -14,10 +14,6 @@
           "originalSource": "/classroom/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/classroom/:path*"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tutor(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/tutor/:path*"
         },
@@ -34,11 +30,11 @@
       ],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "127aAnUvb83JUhGmWMwpk",
-        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "rYZhLfCczsv2OdFZ0fJ42qkp+UEbbUwCPwvgNpc7FCE=",
-        "__NEXT_PREVIEW_MODE_ID": "bc690f694e743521b0af403c05c66318",
-        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "135deae045dd2195ba2e233a5817aeb8262f6cdfdffc1c92561e559010a1123d",
-        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "b778b7e8e6179455e04e0b84e39bb0ae8b91e64c1ff56a0ce09468130b199836"
+        "__NEXT_BUILD_ID": "-0zhyY9pxjIQZrS_Z9bE_",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "YovvRwvs6PVrnBHPFVjqUIDe/cypKfH0KbqnqO5pSLo=",
+        "__NEXT_PREVIEW_MODE_ID": "c5647c74ad0c90e4a201419e3670b395",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "cb1fbb9f30601579fddac842e04d03b737e3a1653dba88796449d973a82de671",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "5bbc2947f08ef725d194248d5167e106e0c977283498224af0d86c5b1e765b82"
       }
     }
   },

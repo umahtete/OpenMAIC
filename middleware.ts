@@ -11,7 +11,6 @@ import { LTI_CONFIG } from '@/lib/lti/config';
  */
 const PROTECTED_ROUTES = [
   '/classroom/',
-  '/api/classroom/',
   '/api/tutor/',
   '/api/chat/',
 ];
@@ -104,7 +103,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/classroom/:path*',
-    '/api/classroom/:path*',
     '/api/tutor/:path*',
     '/api/chat/:path*',
   ],

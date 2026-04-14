@@ -262,6 +262,13 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
         currentSceneId,
         chats,
       });
+
+      // Sync to server (fire-and-forget)
+      fetch('/api/classroom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage, scenes }),
+      }).catch(() => {});
     } catch (error) {
       log.error('Failed to save to storage:', error);
     }
