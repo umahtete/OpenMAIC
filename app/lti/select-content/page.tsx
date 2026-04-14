@@ -54,30 +54,33 @@ function SelectContentInner() {
         const data = await res.json();
         const classrooms = data.classrooms || data.data?.classrooms || [];
         if (data.success && classrooms.length > 0) {
+          const origin = window.location.origin;
           const items: ContentItem[] = classrooms.map((c: ClassroomSummary) => ({
             type: 'ltiResourceLink',
             title: c.title,
             text: c.description || `Course created ${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}`,
-            url: `/classroom/${c.id}`,
+            url: `${origin}/classroom/${c.id}`,
           }));
           setContentItems(items);
         } else {
+          const origin = window.location.origin;
           setContentItems([
             {
               type: 'ltiResourceLink',
               title: 'LuxUp AI Tutor',
               text: 'Launch the AI-powered personalized education platform.',
-              url: '/',
+              url: `${origin}/`,
             },
           ]);
         }
       } catch {
+        const origin = window.location.origin;
         setContentItems([
           {
             type: 'ltiResourceLink',
             title: 'LuxUp AI Tutor',
             text: 'Launch the AI-powered personalized education platform.',
-            url: '/',
+            url: `${origin}/`,
           },
         ]);
       } finally {

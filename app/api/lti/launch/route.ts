@@ -218,7 +218,12 @@ export async function POST(request: NextRequest) {
     } else {
       // Standard launch - redirect to the specific content or home
       if (launchContext.targetLinkUri) {
-        redirectUrl = launchContext.targetLinkUri;
+        let uri = launchContext.targetLinkUri;
+        // Ensure absolute URL — Moodle may resolve relative URLs against its own domain
+        if (!uri.startsWith('http')) {
+          uri = `${toolUrl}${uri.startsWith('/') ? '' : '/'}${uri}`;
+        }
+        redirectUrl = uri;
       } else {
         const classroomId = launchContext.custom?.classroom_id;
         if (classroomId) {
