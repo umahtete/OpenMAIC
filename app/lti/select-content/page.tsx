@@ -52,8 +52,9 @@ function SelectContentInner() {
       try {
         const res = await fetch('/api/classroom');
         const data = await res.json();
-        if (data.success && data.data?.classrooms?.length > 0) {
-          const items: ContentItem[] = data.data.classrooms.map((c: ClassroomSummary) => ({
+        const classrooms = data.classrooms || data.data?.classrooms || [];
+        if (data.success && classrooms.length > 0) {
+          const items: ContentItem[] = classrooms.map((c: ClassroomSummary) => ({
             type: 'ltiResourceLink',
             title: c.title,
             text: c.description || `Course created ${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}`,
