@@ -735,6 +735,7 @@ export const useSettingsStore = create<SettingsState>()(
               image: Record<string, { baseUrl?: string }>;
               video: Record<string, { baseUrl?: string }>;
               webSearch: Record<string, { baseUrl?: string }>;
+              defaultModel?: string;
             };
 
             set((state) => {
@@ -1077,21 +1078,33 @@ export const useSettingsStore = create<SettingsState>()(
                 }
               }
 
-              // LLM auto-select: only on true first load (no provider selected yet)
+              // LLM auto-select: use DEFAULT_MODEL from server, or first available
               let autoProviderId: ProviderId | undefined;
               let autoModelId: string | undefined;
               if (!state.providerId && !state.modelId) {
-                for (const [pid, cfg] of Object.entries(newProvidersConfig)) {
-                  if (cfg.isServerConfigured) {
-                    // Prefer server-restricted models, fall back to built-in list
-                    const serverModels = cfg.serverModels;
-                    const modelId = serverModels?.length
-                      ? serverModels[0]
-                      : PROVIDERS[pid as ProviderId]?.models[0]?.id;
-                    if (modelId) {
-                      autoProviderId = pid as ProviderId;
-                      autoModelId = modelId;
-                      break;
+                // Check if server specifies a default model (e.g., "google:gemini-2.5-flash")
+                const serverDefault = data.defaultModel as string | undefined;
+                if (serverDefault && serverDefault.includes(':')) {
+                  const [defaultPid, ...rest] = serverDefault.split(':');
+                  const defaultMid = rest.join(':');
+                  if (newProvidersConfig[defaultPid as ProviderId]?.isServerConfigured) {
+                    autoProviderId = defaultPid as ProviderId;
+                    autoModelId = defaultMid;
+                  }
+                }
+                // Fall back to first available server provider
+                if (!autoProviderId) {
+                  for (const [pid, cfg] of Object.entries(newProvidersConfig)) {
+                    if (cfg.isServerConfigured) {
+                      const serverModels = cfg.serverModels;
+                      const modelId = serverModels?.length
+                        ? serverModels[0]
+                        : PROVIDERS[pid as ProviderId]?.models[0]?.id;
+                      if (modelId) {
+                        autoProviderId = pid as ProviderId;
+                        autoModelId = modelId;
+                        break;
+                      }
                     }
                   }
                 }

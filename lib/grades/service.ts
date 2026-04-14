@@ -68,6 +68,65 @@ async function getAccessToken(scope: string): Promise<string> {
 }
 
 /**
+ * Create a line item on Moodle via AGS, then store the scores URL.
+ * Called during LTI launch when Moodle provides a lineItems container URL
+ * but no individual line item.
+ */
+export async function ensureLineItem(
+  lineItemsUrl: string,
+  contextId: string,
+  resourceLinkId: string,
+  label: string,
+): Promise<string | null> {
+  const { getLineItemsByResourceLinkIdFromDb, upsertAgsEndpoints } = await import('@/lib/lti/stores/line-item-store');
+
+  const existing = await getLineItemsByResourceLinkIdFromDb(resourceLinkId);
+  if (existing?.scoresUrl) {
+    return existing.scoresUrl;
+  }
+
+  try {
+    const accessToken = await getAccessToken('https://purl.imsglobal.org/spec/lti-ags/scope/lineitem');
+
+    const response = await fetch(lineItemsUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/vnd.ims.lis.v1.lineitem+json',
+      },
+      body: JSON.stringify({
+        scoreMaximum: 100,
+        label: label || 'LuxUp AI Tutor',
+        resourceId: resourceLinkId,
+        tag: 'luxup',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[AGS] Failed to create line item:', response.status, errorText);
+      return null;
+    }
+
+    const lineItem = await response.json();
+    const lineItemUrl = lineItem.id;
+    const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+
+    await upsertAgsEndpoints(contextId, resourceLinkId, {
+      lineItems: lineItemsUrl,
+      lineItem: lineItemUrl,
+      scores: scoresUrl,
+    }, label);
+
+    console.log('[AGS] Created line item:', { lineItemUrl, scoresUrl });
+    return scoresUrl;
+  } catch (error) {
+    console.error('[AGS] Error creating line item:', error);
+    return null;
+  }
+}
+
+/**
  * Submit a score to Moodle's AGS endpoint
  */
 async function submitScoreToMoodle(

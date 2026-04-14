@@ -154,6 +154,20 @@ export async function POST(request: NextRequest) {
           lineItems: !!launchContext.endpoint.lineItems,
           lineItem: !!launchContext.endpoint.lineItem,
         });
+
+        // If no scores URL, create a line item to get one
+        if (!launchContext.endpoint.scores && launchContext.endpoint.lineItems) {
+          const { ensureLineItem } = await import('@/lib/grades/service');
+          const scoresUrl = await ensureLineItem(
+            launchContext.endpoint.lineItems,
+            launchContext.contextId,
+            launchContext.resourceLinkId,
+            launchContext.contextTitle || 'LuxUp AI Tutor'
+          );
+          if (scoresUrl) {
+            console.log('[LTI] Line item created, scores URL:', scoresUrl);
+          }
+        }
       } catch (agsError) {
         console.warn('[LTI] Failed to store AGS endpoints (non-fatal):', agsError);
       }

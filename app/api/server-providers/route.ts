@@ -22,6 +22,7 @@ export async function GET() {
       image: getServerImageProviders(),
       video: getServerVideoProviders(),
       webSearch: getServerWebSearchProviders(),
+      defaultModel: process.env.DEFAULT_MODEL || null,
     });
   } catch (error) {
     log.error('Error fetching server providers:', error);
