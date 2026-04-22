@@ -215,19 +215,21 @@ export async function submitGrade(
 export async function submitGradeToMoodle(
   scoresEndpoint: string,
   sessionData: LTISessionData,
-  grade: GradePayload
+  grade: GradePayload,
+  platformUserId?: string
 ): Promise<GradePassbackResult> {
   try {
     // Get access token
     const accessToken = await getAccessToken('https://purl.imsglobal.org/spec/lti-ags/scope/score');
     
-    // Submit to Moodle
+    // Submit to Moodle — use platform user ID (sub) for AGS, database ID for local storage
+    const agsUserId = platformUserId || sessionData.userId;
     await submitScoreToMoodle(
       accessToken,
       scoresEndpoint,
       grade.scoreGiven,
       grade.scoreMaximum,
-      sessionData.userId,
+      agsUserId,
       grade.activityProgress,
       grade.gradingProgress,
       grade.timestamp,
