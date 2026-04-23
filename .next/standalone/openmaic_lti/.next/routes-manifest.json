@@ -145,6 +145,12 @@
       "namedRegex": "^/api/health(?:/)?$"
     },
     {
+      "page": "/api/lti/debug",
+      "regex": "^/api/lti/debug(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/lti/debug(?:/)?$"
+    },
+    {
       "page": "/api/lti/deep-link",
       "regex": "^/api/lti/deep\\-link(?:/)?$",
       "routeKeys": {},
