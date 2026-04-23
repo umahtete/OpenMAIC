@@ -157,6 +157,12 @@
       "namedRegex": "^/api/lti/debug(?:/)?$"
     },
     {
+      "page": "/api/lti/debug/ags-test",
+      "regex": "^/api/lti/debug/ags\\-test(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/lti/debug/ags\\-test(?:/)?$"
+    },
+    {
       "page": "/api/lti/deep-link",
       "regex": "^/api/lti/deep\\-link(?:/)?$",
       "routeKeys": {},
