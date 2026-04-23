@@ -92,7 +92,7 @@ export async function ensureLineItem(
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/vnd.ims.lis.v1.lineitem+json',
+        'Content-Type': 'application/vnd.ims.lis.v2.lineitem+json',
       },
       body: JSON.stringify({
         scoreMaximum: 100,
@@ -144,7 +144,7 @@ async function submitScoreToMoodle(
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/vnd.ims.lis.v1.score+json',
+      'Content-Type': 'application/vnd.ims.lis.v2.score+json',
     },
     body: JSON.stringify({
       scoreGiven: score,

@@ -132,7 +132,7 @@ export async function GET() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/vnd.ims.lis.v1.lineitem+json',
+          'Content-Type': 'application/vnd.ims.lis.v2.lineitem+json',
         },
         body: JSON.stringify({
           scoreMaximum: 100,
