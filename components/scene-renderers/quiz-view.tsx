@@ -22,6 +22,7 @@ const log = createLogger('QuizView');
 import type { QuizQuestion } from '@/lib/types/stage';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
 import { SpeechButton } from '@/components/audio/speech-button';
+import { useGradePassback } from '@/lib/hooks/use-grade-passback';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -690,6 +691,7 @@ export function QuizView({ questions, sceneId }: QuizViewProps) {
   const [phase, setPhase] = useState<Phase>('not_started');
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [results, setResults] = useState<QuestionResult[]>([]);
+  const { submitGrade } = useGradePassback();
 
   // Draft cache for quiz answers, keyed by sceneId to isolate across classrooms
   const {
@@ -784,6 +786,16 @@ export function QuizView({ questions, sceneId }: QuizViewProps) {
   }, [clearAnswersCache]);
 
   const earnedScore = useMemo(() => results.reduce((sum, r) => sum + r.earned, 0), [results]);
+
+  useEffect(() => {
+    if (phase === 'reviewing' && results.length > 0 && totalPoints > 0) {
+      submitGrade(sceneId, {
+        scoreGiven: earnedScore,
+        scoreMaximum: totalPoints,
+        comment: `Quiz: ${earnedScore}/${totalPoints}`,
+      });
+    }
+  }, [phase, sceneId, earnedScore, totalPoints, results.length, submitGrade]);
 
   const resultMap = useMemo(() => {
     const map: Record<string, QuestionResult> = {};

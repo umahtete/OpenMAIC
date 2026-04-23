@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useStageStore } from '@/lib/store';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
+import { useGradePassback } from '@/lib/hooks/use-grade-passback';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -61,6 +62,10 @@ export function Stage({
   const setChatAreaCollapsed = useSettingsStore((s) => s.setChatAreaCollapsed);
   const setTTSMuted = useSettingsStore((s) => s.setTTSMuted);
   const setTTSVolume = useSettingsStore((s) => s.setTTSVolume);
+
+  const { submitProgress } = useGradePassback();
+  const completedScenesRef = useRef<Set<string>>(new Set());
+  const courseCompletionSubmittedRef = useRef(false);
 
   // PlaybackEngine state
   const [engineMode, setEngineMode] = useState<EngineMode>('idle');
@@ -482,17 +487,26 @@ export function Stage({
       },
       getPlaybackSpeed: () => useSettingsStore.getState().playbackSpeed || 1,
       onComplete: () => {
-        // lectureSpeech intentionally NOT cleared — last sentence stays visible
-        // until scene transition (auto-play) or user restarts. Scene change
-        // effect handles the reset.
         setPlaybackCompleted(true);
 
-        // End lecture session on playback complete
+        if (currentScene) {
+          completedScenesRef.current.add(currentScene.id);
+        }
+
         if (lectureSessionIdRef.current) {
           chatAreaRef.current?.endSession(lectureSessionIdRef.current);
           lectureSessionIdRef.current = null;
         }
-        // Auto-play: advance to next scene after a short pause
+
+        if (
+          !courseCompletionSubmittedRef.current &&
+          scenes.length > 0 &&
+          completedScenesRef.current.size >= scenes.length
+        ) {
+          courseCompletionSubmittedRef.current = true;
+          submitProgress('course-complete', 100);
+        }
+
         const { autoPlayLecture } = useSettingsStore.getState();
         if (autoPlayLecture) {
           setTimeout(() => {
