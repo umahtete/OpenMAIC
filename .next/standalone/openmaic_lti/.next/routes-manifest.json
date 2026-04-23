@@ -145,6 +145,12 @@
       "namedRegex": "^/api/health(?:/)?$"
     },
     {
+      "page": "/api/lti/create-line-item",
+      "regex": "^/api/lti/create\\-line\\-item(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/lti/create\\-line\\-item(?:/)?$"
+    },
+    {
       "page": "/api/lti/debug",
       "regex": "^/api/lti/debug(?:/)?$",
       "routeKeys": {},
