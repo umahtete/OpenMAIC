@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No line item record found' }, { status: 404 });
     }
 
-    steps.push({ step: 'db_record', status: 'ok', data: { lineItemsUrl: lineItem.lineItemsUrl, lineItemUrl: lineItem.lineItemUrl, scoresUrl: lineItem.scoresUrl } });
+    steps.push({ step: 'db_record', status: 'ok', data: { id: lineItem.id, lineItemsUrl: lineItem.lineItemsUrl, lineItemUrl: lineItem.lineItemUrl, scoresUrl: lineItem.scoresUrl } });
 
     if (lineItem.scoresUrl) {
       return NextResponse.json({ message: 'Already has scoresUrl', scoresUrl: lineItem.scoresUrl, steps });
@@ -94,39 +94,80 @@ export async function POST(request: NextRequest) {
 
     const accessToken = (tokenData as { access_token: string }).access_token;
 
-    const liRes = await fetch(lineItem.lineItemsUrl, {
-      method: 'POST',
+    // Step 1: GET existing line items (Moodle auto-creates grade items)
+    const getListRes = await fetch(lineItem.lineItemsUrl, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/vnd.ims.lis.v2.lineitem+json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        scoreMaximum: 100,
-        label: lineItem.label || 'LuxUp AI Tutor',
-        resourceId: resourceLinkId,
-        tag: 'luxup',
-      }),
     });
+    const getListText = await getListRes.text();
+    let getListData;
+    try { getListData = JSON.parse(getListText); } catch { getListData = getListText; }
+    steps.push({ step: 'get_existing_lineitems', status: getListRes.ok ? 'ok' : 'error', data: { httpStatus: getListRes.status, body: getListData } });
 
-    const liText = await liRes.text();
-    let liData;
-    try { liData = JSON.parse(liText); } catch { liData = liText; }
-
-    steps.push({ step: 'line_item_response', status: liRes.ok ? 'ok' : 'error', data: { httpStatus: liRes.status, body: liData } });
-
-    if (liRes.ok) {
-      const liUrl = (liData as { id: string }).id;
+    // Use existing line item if found
+    if (getListRes.ok && Array.isArray(getListData) && getListData.length > 0) {
+      const existing = getListData[0] as { id: string; [key: string]: unknown };
+      const liUrl = existing.id;
       const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
+
+      steps.push({ step: 'using_existing_lineitem', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, item: existing } });
 
       await prisma.ltiLineItem.update({
         where: { id: lineItem.id },
         data: { lineItemUrl: liUrl, scoresUrl },
       });
 
-      steps.push({ step: 'stored', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl } });
+      steps.push({ step: 'stored_from_existing', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl } });
+      return NextResponse.json({ steps });
     }
 
-    return NextResponse.json({ steps });
+    // Step 2: Try creating with different content types
+    const contentTypes = [
+      'application/vnd.ims.lis.v2.lineitem+json',
+      'application/vnd.ims.lis.v1.lineitem+json',
+      'application/json',
+    ];
+
+    for (const ct of contentTypes) {
+      const liRes = await fetch(lineItem.lineItemsUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': ct,
+          'Accept': ct,
+        },
+        body: JSON.stringify({
+          scoreMaximum: 100,
+          label: lineItem.label || 'LuxUp AI Tutor',
+          resourceId: resourceLinkId,
+          tag: 'luxup',
+        }),
+      });
+
+      const liText = await liRes.text();
+      let liData;
+      try { liData = JSON.parse(liText); } catch { liData = liText; }
+
+      steps.push({ step: `create_lineitem_${ct.split('/').pop()}`, status: liRes.ok ? 'ok' : 'error', data: { httpStatus: liRes.status, contentType: ct, body: liData } });
+
+      if (liRes.ok) {
+        const liUrl = (liData as { id: string }).id;
+        const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
+
+        await prisma.ltiLineItem.update({
+          where: { id: lineItem.id },
+          data: { lineItemUrl: liUrl, scoresUrl },
+        });
+
+        steps.push({ step: 'stored_new', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, usedContentType: ct } });
+        return NextResponse.json({ steps });
+      }
+    }
+
+    return NextResponse.json({ steps }, { status: 500 });
   } catch (error) {
     steps.push({ step: 'fatal_error', status: 'error', data: { message: error instanceof Error ? error.message : 'Unknown', stack: error instanceof Error ? error.stack : undefined } });
     return NextResponse.json({ steps }, { status: 500 });

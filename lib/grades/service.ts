@@ -88,38 +88,76 @@ export async function ensureLineItem(
   try {
     const accessToken = await getAccessToken('https://purl.imsglobal.org/spec/lti-ags/scope/lineitem');
 
-    const response = await fetch(lineItemsUrl, {
-      method: 'POST',
+    // Step 1: GET existing line items — Moodle auto-creates grade items for LTI activities
+    const getRes = await fetch(lineItemsUrl, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/vnd.ims.lis.v2.lineitem+json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        scoreMaximum: 100,
-        label: label || 'LuxUp AI Tutor',
-        resourceId: resourceLinkId,
-        tag: 'luxup',
-      }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[AGS] Failed to create line item:', response.status, errorText);
-      return null;
+    if (getRes.ok) {
+      const items = await getRes.json();
+      if (Array.isArray(items) && items.length > 0) {
+        const lineItemUrl = items[0].id;
+        const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+
+        await upsertAgsEndpoints(contextId, resourceLinkId, {
+          lineItems: lineItemsUrl,
+          lineItem: lineItemUrl,
+          scores: scoresUrl,
+        }, label);
+
+        console.log('[AGS] Using existing line item:', { lineItemUrl, scoresUrl });
+        return scoresUrl;
+      }
     }
 
-    const lineItem = await response.json();
-    const lineItemUrl = lineItem.id;
-    const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+    // Step 2: Try creating with different content types (Moodle versions vary)
+    const contentTypes = [
+      'application/vnd.ims.lis.v2.lineitem+json',
+      'application/vnd.ims.lis.v1.lineitem+json',
+      'application/json',
+    ];
 
-    await upsertAgsEndpoints(contextId, resourceLinkId, {
-      lineItems: lineItemsUrl,
-      lineItem: lineItemUrl,
-      scores: scoresUrl,
-    }, label);
+    for (const ct of contentTypes) {
+      const response = await fetch(lineItemsUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': ct,
+          'Accept': ct,
+        },
+        body: JSON.stringify({
+          scoreMaximum: 100,
+          label: label || 'LuxUp AI Tutor',
+          resourceId: resourceLinkId,
+          tag: 'luxup',
+        }),
+      });
 
-    console.log('[AGS] Created line item:', { lineItemUrl, scoresUrl });
-    return scoresUrl;
+      if (response.ok) {
+        const lineItem = await response.json();
+        const lineItemUrl = lineItem.id;
+        const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+
+        await upsertAgsEndpoints(contextId, resourceLinkId, {
+          lineItems: lineItemsUrl,
+          lineItem: lineItemUrl,
+          scores: scoresUrl,
+        }, label);
+
+        console.log('[AGS] Created line item:', { lineItemUrl, scoresUrl, contentType: ct });
+        return scoresUrl;
+      }
+
+      const errorText = await response.text();
+      console.warn(`[AGS] POST with ${ct} failed:`, response.status, errorText);
+    }
+
+    console.error('[AGS] All content types failed for line item creation');
+    return null;
   } catch (error) {
     console.error('[AGS] Error creating line item:', error);
     return null;
