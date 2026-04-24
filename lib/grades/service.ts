@@ -21,6 +21,13 @@ import {
 
 export type { ActivityProgress, GradingProgress };
 
+// Derive scoresUrl from lineItemUrl, inserting /scores BEFORE any query string
+function deriveScoresUrl(lineItemUrl: string): string {
+  const [path, query] = lineItemUrl.split('?');
+  const basePath = path.endsWith('/') ? path.slice(0, -1) : path;
+  return query ? `${basePath}/scores?${query}` : `${basePath}/scores`;
+}
+
 /**
  * Get OAuth2 access token from Moodle for AGS API calls.
  * Uses JWT assertion authentication (LTI 1.3 standard) — signs a JWT with
@@ -101,7 +108,7 @@ export async function ensureLineItem(
       const items = await getRes.json();
       if (Array.isArray(items) && items.length > 0) {
         const lineItemUrl = items[0].id;
-        const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+        const scoresUrl = deriveScoresUrl(lineItemUrl);
 
         await upsertAgsEndpoints(contextId, resourceLinkId, {
           lineItems: lineItemsUrl,
@@ -140,7 +147,7 @@ export async function ensureLineItem(
       if (response.ok) {
         const lineItem = await response.json();
         const lineItemUrl = lineItem.id;
-        const scoresUrl = lineItemUrl.endsWith('/') ? `${lineItemUrl}scores` : `${lineItemUrl}/scores`;
+        const scoresUrl = deriveScoresUrl(lineItemUrl);
 
         await upsertAgsEndpoints(contextId, resourceLinkId, {
           lineItems: lineItemsUrl,

@@ -6,6 +6,13 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+// Derive scoresUrl from lineItemUrl, inserting /scores BEFORE any query string
+function deriveScoresUrl(lineItemUrl: string): string {
+  const [path, query] = lineItemUrl.split('?');
+  const basePath = path.endsWith('/') ? path.slice(0, -1) : path;
+  return query ? `${basePath}/scores?${query}` : `${basePath}/scores`;
+}
+
 export async function POST(request: NextRequest) {
   const steps: { step: string; status: string; data?: unknown }[] = [];
 
@@ -170,7 +177,7 @@ export async function POST(request: NextRequest) {
     if (getListRes?.ok && Array.isArray(getListData) && getListData.length > 0) {
       const existing = getListData[0] as { id: string; [key: string]: unknown };
       const liUrl = existing.id;
-      const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
+      const scoresUrl = deriveScoresUrl(liUrl);
 
       steps.push({ step: 'using_existing_lineitem', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, variation: usedVariation, item: existing } });
 
@@ -215,7 +222,7 @@ export async function POST(request: NextRequest) {
 
         if (liRes.ok) {
           const liUrl = (liData as { id: string }).id;
-          const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
+          const scoresUrl = deriveScoresUrl(liUrl);
 
           await prisma.ltiLineItem.update({
             where: { id: lineItem.id },
