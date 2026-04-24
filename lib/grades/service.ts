@@ -93,7 +93,7 @@ export async function ensureLineItem(
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/vnd.ims.lis.v2.lineitemcontainer+json, application/vnd.ims.lis.v1.lineitemcontainer+json, application/json',
+        'Accept': 'application/vnd.ims.lis.v2.lineitemcontainer+json',
       },
     });
 
