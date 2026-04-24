@@ -1,1 +1,0 @@
-self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/config/workspace/Christian Education/openmaic_lti/app/layout":["static/media/78fec81b34c4a365.p.woff2","static/media/6c596dfcddeca1e9-s.p.woff2","static/media/27834908180db20f-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';

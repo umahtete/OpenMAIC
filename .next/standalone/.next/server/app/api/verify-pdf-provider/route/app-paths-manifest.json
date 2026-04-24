@@ -1,0 +1,3 @@
+{
+  "/api/verify-pdf-provider/route": "app/api/verify-pdf-provider/route.js"
+}

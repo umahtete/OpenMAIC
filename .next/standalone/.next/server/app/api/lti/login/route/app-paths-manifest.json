@@ -1,0 +1,3 @@
+{
+  "/api/lti/login/route": "app/api/lti/login/route.js"
+}

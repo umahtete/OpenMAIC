@@ -1,0 +1,3 @@
+{
+  "/api/generate-classroom/[jobId]/route": "app/api/generate-classroom/[jobId]/route.js"
+}

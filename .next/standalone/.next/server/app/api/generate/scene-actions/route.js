@@ -1,0 +1,13 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/generate/scene-actions/route.js")
+R.c("server/chunks/node_modules__pnpm_0fdad8b1._.js")
+R.c("server/chunks/[root-of-the-server]__1eef9b16._.js")
+R.c("server/chunks/lib_ai_providers_ts_6aab28c1._.js")
+R.c("server/chunks/_3fb8eafd._.js")
+R.c("server/chunks/_4e2d8377._.js")
+R.c("server/chunks/node_modules__pnpm_406c5fce._.js")
+R.c("server/chunks/[root-of-the-server]__3d199820._.js")
+R.c("server/chunks/node_modules__pnpm_1fc6a1a0._.js")
+R.c("server/chunks/lib_server_provider-config_ts_1d525828._.js")
+R.c("server/chunks/_next-internal_server_app_api_generate_scene-actions_route_actions_5b48c94f.js")
+R.m(928779)
+module.exports=R.m(928779).exports

@@ -1,1 +1,0 @@
-"use strict";exports.id=7289,exports.ids=[7289,9670],exports.modules={9670:(a,b,c)=>{c.d(b,{sP:()=>d});let d={unpdf:{id:"unpdf",name:"unpdf",requiresApiKey:!1,icon:"/logos/unpdf.svg",features:["text","images","metadata"]},mineru:{id:"mineru",name:"MinerU",requiresApiKey:!1,icon:"/logos/mineru.png",features:["text","images","tables","formulas","layout-analysis"]}}}};
