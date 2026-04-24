@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/json',
+        'Accept': 'application/vnd.ims.lis.v2.lineitemcontainer+json, application/vnd.ims.lis.v1.lineitemcontainer+json, application/json',
       },
     });
     const getListText = await getListRes.text();
