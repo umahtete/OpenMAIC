@@ -94,26 +94,85 @@ export async function POST(request: NextRequest) {
 
     const accessToken = (tokenData as { access_token: string }).access_token;
 
-    // Step 1: GET existing line items (Moodle auto-creates grade items)
-    const getListRes = await fetch(lineItem.lineItemsUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/vnd.ims.lis.v2.lineitemcontainer+json',
-      },
-    });
-    const getListText = await getListRes.text();
-    let getListData;
-    try { getListData = JSON.parse(getListText); } catch { getListData = getListText; }
-    steps.push({ step: 'get_existing_lineitems', status: getListRes.ok ? 'ok' : 'error', data: { httpStatus: getListRes.status, body: getListData } });
+    // Helper: try GET lineitems with different URL variations and scopes
+    const tryGetLineItems = async (url: string, token: string, scope: string) => {
+      // Get a token with the specified scope if different from current
+      let useToken = token;
+      if (scope !== 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem') {
+        const scopeTokenBody = new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: platformConfig.clientId,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: clientAssertion,
+          scope,
+        });
+        const scopeTokenRes = await fetch(platformConfig.tokenEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: scopeTokenBody.toString(),
+        });
+        if (scopeTokenRes.ok) {
+          const scopeTokenData = await scopeTokenRes.json() as { access_token: string };
+          useToken = scopeTokenData.access_token;
+        }
+      }
+      return fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${useToken}`,
+          'Accept': 'application/vnd.ims.lis.v2.lineitemcontainer+json',
+        },
+      });
+    };
+
+    // Build URL variations to try (with type_id, without type_id)
+    const baseUrl = lineItem.lineItemsUrl.split('?')[0];
+    const urlVariations = [
+      { url: lineItem.lineItemsUrl, label: 'with_type_id' },
+      { url: baseUrl, label: 'without_type_id' },
+    ];
+
+    // Also try with readonly scope
+    const scopes = [
+      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
+    ];
+
+    // Step 1: Try GET existing line items with multiple URL/scope combinations
+    let getListRes: Response | null = null;
+    let getListData: unknown;
+    let usedVariation = '';
+
+    for (const variation of urlVariations) {
+      for (const scope of scopes) {
+        const res = await tryGetLineItems(variation.url, accessToken, scope);
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+
+        steps.push({
+          step: `get_lineitems_${variation.label}_${scope.split('/').pop()}`,
+          status: res.ok ? 'ok' : 'error',
+          data: { url: variation.url, scope: scope.split('/').pop(), httpStatus: res.status, body: data },
+        });
+
+        if (res.ok) {
+          getListRes = res;
+          getListData = data;
+          usedVariation = variation.label;
+          break;
+        }
+      }
+      if (getListRes?.ok) break;
+    }
 
     // Use existing line item if found
-    if (getListRes.ok && Array.isArray(getListData) && getListData.length > 0) {
+    if (getListRes?.ok && Array.isArray(getListData) && getListData.length > 0) {
       const existing = getListData[0] as { id: string; [key: string]: unknown };
       const liUrl = existing.id;
       const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
 
-      steps.push({ step: 'using_existing_lineitem', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, item: existing } });
+      steps.push({ step: 'using_existing_lineitem', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, variation: usedVariation, item: existing } });
 
       await prisma.ltiLineItem.update({
         where: { id: lineItem.id },
@@ -124,46 +183,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ steps });
     }
 
-    // Step 2: Try creating with different content types
+    // Step 2: Try creating with different content types and URL variations
     const contentTypes = [
       'application/vnd.ims.lis.v2.lineitem+json',
       'application/vnd.ims.lis.v1.lineitem+json',
       'application/json',
     ];
 
-    for (const ct of contentTypes) {
-      const liRes = await fetch(lineItem.lineItemsUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': ct,
-          'Accept': ct,
-        },
-        body: JSON.stringify({
-          scoreMaximum: 100,
-          label: lineItem.label || 'LuxUp AI Tutor',
-          resourceId: resourceLinkId,
-          tag: 'luxup',
-        }),
-      });
-
-      const liText = await liRes.text();
-      let liData;
-      try { liData = JSON.parse(liText); } catch { liData = liText; }
-
-      steps.push({ step: `create_lineitem_${ct.split('/').pop()}`, status: liRes.ok ? 'ok' : 'error', data: { httpStatus: liRes.status, contentType: ct, body: liData } });
-
-      if (liRes.ok) {
-        const liUrl = (liData as { id: string }).id;
-        const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
-
-        await prisma.ltiLineItem.update({
-          where: { id: lineItem.id },
-          data: { lineItemUrl: liUrl, scoresUrl },
+    for (const urlVar of urlVariations) {
+      for (const ct of contentTypes) {
+        const liRes = await fetch(urlVar.url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': ct,
+            'Accept': ct,
+          },
+          body: JSON.stringify({
+            scoreMaximum: 100,
+            label: lineItem.label || 'LuxUp AI Tutor',
+            resourceId: resourceLinkId,
+            tag: 'luxup',
+          }),
         });
 
-        steps.push({ step: 'stored_new', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, usedContentType: ct } });
-        return NextResponse.json({ steps });
+        const liText = await liRes.text();
+        let liData;
+        try { liData = JSON.parse(liText); } catch { liData = liText; }
+
+        steps.push({ step: `create_lineitem_${urlVar.label}_${ct.split('/').pop()}`, status: liRes.ok ? 'ok' : 'error', data: { url: urlVar.url, httpStatus: liRes.status, contentType: ct, body: liData } });
+
+        if (liRes.ok) {
+          const liUrl = (liData as { id: string }).id;
+          const scoresUrl = liUrl.endsWith('/') ? `${liUrl}scores` : `${liUrl}/scores`;
+
+          await prisma.ltiLineItem.update({
+            where: { id: lineItem.id },
+            data: { lineItemUrl: liUrl, scoresUrl },
+          });
+
+          steps.push({ step: 'stored_new', status: 'ok', data: { lineItemUrl: liUrl, scoresUrl, usedContentType: ct, usedUrl: urlVar.label } });
+          return NextResponse.json({ steps });
+        }
       }
     }
 
