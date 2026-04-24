@@ -1,0 +1,45 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge-runtime-webpack.js",
+        "server/middleware.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/classroom(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/classroom/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tutor(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/api/tutor/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/chat(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/api/chat/:path*"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_f4b69850bc2f6b02c2a186cea508d821c6b30f98",
+          "filePath": "server/edge-chunks/wasm_f4b69850bc2f6b02c2a186cea508d821c6b30f98.wasm"
+        }
+      ],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "nJNSSIUc0YJr26DVmA5fs",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "G7Uh0ow5Km3iqafPi7rjWuAmIAnt+MUVpSXdECgWRiM=",
+        "__NEXT_PREVIEW_MODE_ID": "2ffba0e3b27ac2825e0ceb063390c194",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "cf0a842db7961d12a0cfe40275407228769ff7f62f34a33a671abd15f674106f",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "9d574296900fdf2a0a3e68919340c7c1e55a002c8faaa513f804a7619f4e9df0"
+      }
+    }
+  },
+  "functions": {},
+  "sortedMiddleware": [
+    "/"
+  ]
+}

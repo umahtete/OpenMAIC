@@ -7,9 +7,15 @@ import prisma from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 // Derive scoresUrl from lineItemUrl, inserting /scores BEFORE any query string
+// Handles Moodle's URL format: .../lineitems/{id}/lineitem → .../lineitems/{id}/scores
 function deriveScoresUrl(lineItemUrl: string): string {
   const [path, query] = lineItemUrl.split('?');
-  const basePath = path.endsWith('/') ? path.slice(0, -1) : path;
+  let basePath = path.endsWith('/') ? path.slice(0, -1) : path;
+  // Moodle appends /lineitem to individual lineitem URLs, but scores are at /scores
+  // without the /lineitem suffix. Strip it if present.
+  if (basePath.endsWith('/lineitem')) {
+    basePath = basePath.slice(0, -'/lineitem'.length);
+  }
   return query ? `${basePath}/scores?${query}` : `${basePath}/scores`;
 }
 
