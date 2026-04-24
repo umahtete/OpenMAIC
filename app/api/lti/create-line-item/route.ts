@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'resourceLinkId is required' }, { status: 400 });
     }
 
+    const force = body.force === true;
+
     const lineItem = await prisma.ltiLineItem.findFirst({ where: { resourceLinkId } });
 
     if (!lineItem) {
@@ -32,8 +34,19 @@ export async function POST(request: NextRequest) {
 
     steps.push({ step: 'db_record', status: 'ok', data: { id: lineItem.id, lineItemsUrl: lineItem.lineItemsUrl, lineItemUrl: lineItem.lineItemUrl, scoresUrl: lineItem.scoresUrl } });
 
-    if (lineItem.scoresUrl) {
+    if (lineItem.scoresUrl && !force) {
       return NextResponse.json({ message: 'Already has scoresUrl', scoresUrl: lineItem.scoresUrl, steps });
+    }
+
+    // If force=true, clear existing data
+    if (force) {
+      await prisma.ltiLineItem.update({
+        where: { id: lineItem.id },
+        data: { lineItemUrl: '', scoresUrl: null },
+      });
+      lineItem.lineItemUrl = '';
+      lineItem.scoresUrl = null;
+      steps.push({ step: 'force_cleared', status: 'ok' });
     }
 
     if (!lineItem.lineItemsUrl) {

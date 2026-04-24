@@ -3,7 +3,7 @@
 3:I[25525,["8121","static/chunks/8121-9c4aa2b16d91ffa6.js","5551","static/chunks/app/lti/select-content/page-acfed3d4fc39987f.js"],"default"]
 6:I[5247,[],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"buildId":"gmS_SBqt8vQ3UbJedw_h0","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"iGzdcBoj-d3dXh8e6Z2-Y","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
 8:null
