@@ -1,14 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getLTIPlatformConfig } from '@/lib/lti/config';
 import { getPrivateKey, getKeyId } from '@/lib/lti/keys';
 import { SignJWT } from 'jose';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const steps: { step: string; status: string; detail?: string; data?: unknown }[] = [];
 
   try {
+    const url = new URL(request.url);
+    const testScore = url.searchParams.get('testScore') === '1';
+    const resourceLinkId = url.searchParams.get('resourceLinkId') || '1';
+
     // Step 1: Check config
     const platformConfig = getLTIPlatformConfig();
     steps.push({
@@ -155,6 +159,125 @@ export async function GET() {
           body: liData,
         },
       });
+
+      // ============================================
+      // SCORE SCOPE TEST (testScore=1)
+      // ============================================
+      if (testScore) {
+        // Step 9: Request token with SCORE scope
+        const scoreTokenBody = new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: platformConfig.clientId,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: clientAssertion,
+          scope: 'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        });
+
+        steps.push({
+          step: '9_score_token_request',
+          status: 'info',
+          data: { scope: 'https://purl.imsglobal.org/spec/lti-ags/scope/score' },
+        });
+
+        let scoreTokenData;
+        try {
+          const scoreTokenRes = await fetch(platformConfig.tokenEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: scoreTokenBody.toString(),
+          });
+          const scoreTokenText = await scoreTokenRes.text();
+          try { scoreTokenData = JSON.parse(scoreTokenText); } catch { scoreTokenData = scoreTokenText; }
+
+          steps.push({
+            step: '10_score_token_response',
+            status: scoreTokenRes.ok ? 'ok' : 'error',
+            data: {
+              httpStatus: scoreTokenRes.status,
+              grantedScope: scoreTokenData?.scope,
+              hasToken: !!scoreTokenData?.access_token,
+              body: scoreTokenData,
+            },
+          });
+
+          if (scoreTokenRes.ok && scoreTokenData?.access_token) {
+            const scoreAccessToken = scoreTokenData.access_token;
+
+            // Determine the scores URL from the line item
+            const lineItemId = liData?.id || `https://courses.luxuptraining.com/mod/lti/services.php/3/lineitems/4/lineitem?type_id=1`;
+            const [path, query] = lineItemId.split('?');
+            const basePath = path.endsWith('/') ? path.slice(0, -1) : path;
+            const scoresUrl = query ? `${basePath}/scores?${query}` : `${basePath}/scores`;
+
+            const scorePayload = {
+              scoreGiven: 85,
+              scoreMaximum: 100,
+              userId: 'https://courses.luxuptraining.com:3',
+              activityProgress: 'Completed',
+              gradingProgress: 'FullyGraded',
+              timestamp: new Date().toISOString(),
+            };
+
+            steps.push({
+              step: '11_score_post_attempt',
+              status: 'info',
+              data: {
+                url: scoresUrl,
+                payload: scorePayload,
+                tokenScope: scoreTokenData.scope,
+              },
+            });
+
+            // Try multiple content type variations
+            const contentTypes = [
+              'application/vnd.ims.lis.v2.score+json',
+              'application/json',
+            ];
+
+            for (const ct of contentTypes) {
+              try {
+                const scoreRes = await fetch(scoresUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${scoreAccessToken}`,
+                    'Content-Type': ct,
+                    'Accept': ct,
+                  },
+                  body: JSON.stringify(scorePayload),
+                });
+
+                const scoreText = await scoreRes.text();
+                let scoreData;
+                try { scoreData = JSON.parse(scoreText); } catch { scoreData = scoreText; }
+
+                steps.push({
+                  step: `12_score_response_${ct.split('/').pop()}`,
+                  status: scoreRes.ok ? 'ok' : 'error',
+                  data: {
+                    httpStatus: scoreRes.status,
+                    contentType: ct,
+                    body: scoreData,
+                  },
+                });
+
+                if (scoreRes.ok) break; // Stop if one works
+              } catch (err) {
+                steps.push({
+                  step: `12_score_error_${ct.split('/').pop()}`,
+                  status: 'error',
+                  detail: err instanceof Error ? err.message : 'Unknown error',
+                });
+              }
+            }
+          }
+        } catch (err) {
+          steps.push({
+            step: 'score_token_error',
+            status: 'error',
+            detail: err instanceof Error ? err.message : 'Unknown error',
+          });
+        }
+      }
 
     } catch (err) {
       steps.push({
