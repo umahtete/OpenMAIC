@@ -191,7 +191,7 @@ async function submitScoreToMoodle(
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/vnd.ims.lis.v2.score+json',
+      'Content-Type': 'application/vnd.ims.lis.v1.score+json',
       'Accept': 'application/json',
     },
     body: JSON.stringify({

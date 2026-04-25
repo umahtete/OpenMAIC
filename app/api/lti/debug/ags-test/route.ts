@@ -230,6 +230,7 @@ export async function GET(request: NextRequest) {
 
             // Try multiple content type variations
             const contentTypes = [
+              'application/vnd.ims.lis.v1.score+json',
               'application/vnd.ims.lis.v2.score+json',
               'application/json',
             ];
