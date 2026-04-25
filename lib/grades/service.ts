@@ -72,6 +72,7 @@ async function getAccessToken(scope: string): Promise<string> {
   }
 
   const data = await response.json();
+  console.log('[AGS Token] Requested scope:', scope, '| Granted scope:', data.scope, '| Token:', data.access_token?.substring(0, 10) + '...');
   return data.access_token;
 }
 
@@ -191,6 +192,7 @@ async function submitScoreToMoodle(
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/vnd.ims.lis.v2.score+json',
+      'Accept': 'application/json',
     },
     body: JSON.stringify({
       scoreGiven: score,
@@ -202,6 +204,7 @@ async function submitScoreToMoodle(
       ...(comment && { comment }),
     }),
   });
+  console.log('[AGS Score] POST to:', scoresEndpoint, '| Status:', response.status);
 
   if (!response.ok) {
     const errorText = await response.text();
