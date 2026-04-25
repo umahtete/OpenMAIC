@@ -21,16 +21,11 @@ import {
 
 export type { ActivityProgress, GradingProgress };
 
-// Derive scoresUrl from lineItemUrl, inserting /scores BEFORE any query string
-// Handles Moodle's URL format: .../lineitems/{id}/lineitem → .../lineitems/{id}/scores
+// Derive scoresUrl from lineItemUrl, appending /scores before any query string
+// Moodle format: .../lineitems/{id}/lineitem → .../lineitems/{id}/lineitem/scores
 function deriveScoresUrl(lineItemUrl: string): string {
   const [path, query] = lineItemUrl.split('?');
-  let basePath = path.endsWith('/') ? path.slice(0, -1) : path;
-  // Moodle appends /lineitem to individual lineitem URLs, but scores are at /scores
-  // without the /lineitem suffix. Strip it if present.
-  if (basePath.endsWith('/lineitem')) {
-    basePath = basePath.slice(0, -'/lineitem'.length);
-  }
+  const basePath = path.endsWith('/') ? path.slice(0, -1) : path;
   return query ? `${basePath}/scores?${query}` : `${basePath}/scores`;
 }
 
