@@ -96,6 +96,8 @@ export async function upsertAgsEndpoints(
     return prisma.ltiLineItem.update({
       where: { id: existing.id },
       data: {
+        // Always update contextId if provided (backfills records created before contextId was tracked)
+        contextId: contextId ?? existing.contextId,
         scoresUrl: endpoints.scores ?? existing.scoresUrl,
         resultsUrl: endpoints.results ?? existing.resultsUrl,
         lineItemsUrl: endpoints.lineItems ?? existing.lineItemsUrl,
