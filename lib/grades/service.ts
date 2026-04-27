@@ -30,6 +30,25 @@ function deriveScoresUrl(lineItemUrl: string): string {
 }
 
 /**
+ * Extract the numeric Moodle user ID from an LTI sub string.
+ * Moodle 5.0's AGS score handler expects a numeric user ID, not the full LTI sub.
+ * Format: "https://courses.luxuptraining.com:3" → "3"
+ */
+function extractMoodleUserId(sub: string): string {
+  // The LTI sub format is {issuer}:{moodle_user_id}
+  // Extract the numeric ID after the last colon
+  const lastColon = sub.lastIndexOf(':');
+  if (lastColon !== -1) {
+    const numericPart = sub.substring(lastColon + 1);
+    if (/^\d+$/.test(numericPart)) {
+      return numericPart;
+    }
+  }
+  // Fallback: return as-is if no colon found
+  return sub;
+}
+
+/**
  * Get OAuth2 access token from Moodle for AGS API calls.
  * Uses JWT assertion authentication (LTI 1.3 standard) — signs a JWT with
  * the tool's Ed25519 private key and sends it as client_assertion.
@@ -271,8 +290,12 @@ export async function submitGradeToMoodle(
     // Get access token
     const accessToken = await getAccessToken('https://purl.imsglobal.org/spec/lti-ags/scope/score');
     
-    // Submit to Moodle — use platform user ID (sub) for AGS, database ID for local storage
-    const agsUserId = platformUserId || sessionData.userId;
+    // Extract numeric Moodle user ID from LTI sub.
+    // Moodle 5.0 expects a numeric ID, not the full LTI sub string.
+    const rawUserId = platformUserId || sessionData.userId;
+    const agsUserId = extractMoodleUserId(rawUserId);
+    console.log('[AGS] User ID mapping:', { raw: rawUserId, resolved: agsUserId });
+    
     await submitScoreToMoodle(
       accessToken,
       scoresEndpoint,

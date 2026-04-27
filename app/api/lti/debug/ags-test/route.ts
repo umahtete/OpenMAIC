@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
             const scorePayload = {
               scoreGiven: 85,
               scoreMaximum: 100,
-              userId: 'https://courses.luxuptraining.com:3',
+              userId: '3', // Moodle 5.0 expects numeric user ID, not LTI sub string
               activityProgress: 'Completed',
               gradingProgress: 'FullyGraded',
               timestamp: new Date().toISOString(),
