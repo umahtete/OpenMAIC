@@ -86,13 +86,13 @@ export async function POST(request: NextRequest) {
       console.log('[Grades API] Submitting to Moodle via AGS');
       result = await submitGradeToMoodle(
         scoresUrl,
-        { userId: platformUserId, resourceLinkId, contextId } as any,
+        { userId: ltiUser.id, resourceLinkId, contextId } as any,
         grade,
         platformUserId,
       );
     } else {
       console.log('[Grades API] No stored scores URL, storing locally only');
-      result = await submitGrade({ userId: platformUserId, resourceLinkId, contextId } as any, grade);
+      result = await submitGrade({ userId: ltiUser.id, resourceLinkId, contextId } as any, grade);
     }
 
     if (result.success) {
