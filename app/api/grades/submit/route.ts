@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const sessionToken = cookieStore.get('openmaic_lti_session');
     let platformUserId: string;
     let resourceLinkId: string;
+    let sessionContextId: string | undefined;
 
     if (sessionToken) {
       // Session-based mode
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       }
       platformUserId = session.userId;
       resourceLinkId = session.resourceLinkId || body.resourceLinkId;
+      sessionContextId = session.contextId;
     } else if (body.resourceLinkId && body.userId) {
       // Direct mode — userId is the platform sub (e.g. "https://courses.luxuptraining.com:3")
       platformUserId = body.userId;
@@ -63,15 +65,25 @@ export async function POST(request: NextRequest) {
       comment: body.comment,
     };
 
-    const scoresUrl = await getScoresUrlForResourceLink(resourceLinkId);
-
-    // Look up the line item record to get contextId for the session data
+    // Look up line item record to get both scoresUrl and contextId
     const lineItemRecord = await getLineItemsByResourceLinkIdFromDb(resourceLinkId);
-    const contextId = lineItemRecord?.contextId || body.contextId || 'unknown';
+    const scoresUrl = lineItemRecord?.scoresUrl || await getScoresUrlForResourceLink(resourceLinkId);
+
+    // Resolve contextId: session > line item record > body > fallback
+    const contextId = sessionContextId || lineItemRecord?.contextId || body.contextId;
+
+    if (!contextId) {
+      return NextResponse.json(
+        { error: 'Cannot determine contextId. Provide it in the request body or ensure an LTI session exists.' },
+        { status: 400 }
+      );
+    }
+
+    console.log('[Grades API] Resolved:', { resourceLinkId, contextId, scoresUrl: scoresUrl ? 'found' : 'not found' });
 
     let result;
     if (scoresUrl) {
-      console.log('[Grades API] Found stored scores URL for resource link:', resourceLinkId, '| contextId:', contextId);
+      console.log('[Grades API] Submitting to Moodle via AGS');
       result = await submitGradeToMoodle(
         scoresUrl,
         { userId: platformUserId, resourceLinkId, contextId } as any,
