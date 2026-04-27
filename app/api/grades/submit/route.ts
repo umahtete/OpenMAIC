@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyLTISession } from '@/lib/lti/provider';
 import { submitGrade, submitGradeToMoodle } from '@/lib/grades/service';
-import { getScoresUrlForResourceLink } from '@/lib/lti/stores/line-item-store';
+import { getScoresUrlForResourceLink, getLineItemsByResourceLinkIdFromDb } from '@/lib/lti/stores/line-item-store';
 import prisma from '@/lib/db';
 import { GradePayload } from '@/lib/grades/types';
 
@@ -65,13 +65,22 @@ export async function POST(request: NextRequest) {
 
     const scoresUrl = await getScoresUrlForResourceLink(resourceLinkId);
 
+    // Look up the line item record to get contextId for the session data
+    const lineItemRecord = await getLineItemsByResourceLinkIdFromDb(resourceLinkId);
+    const contextId = lineItemRecord?.contextId || body.contextId || 'unknown';
+
     let result;
     if (scoresUrl) {
-      console.log('[Grades API] Found stored scores URL for resource link:', resourceLinkId);
-      result = await submitGradeToMoodle(scoresUrl, { userId: platformUserId, resourceLinkId } as any, grade, platformUserId);
+      console.log('[Grades API] Found stored scores URL for resource link:', resourceLinkId, '| contextId:', contextId);
+      result = await submitGradeToMoodle(
+        scoresUrl,
+        { userId: platformUserId, resourceLinkId, contextId } as any,
+        grade,
+        platformUserId,
+      );
     } else {
       console.log('[Grades API] No stored scores URL, storing locally only');
-      result = await submitGrade({ userId: platformUserId, resourceLinkId } as any, grade);
+      result = await submitGrade({ userId: platformUserId, resourceLinkId, contextId } as any, grade);
     }
 
     if (result.success) {
