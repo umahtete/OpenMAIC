@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { ThumbnailSlide } from '@/components/slide-renderer/components/ThumbnailSlide';
 import { useStageStore, useCanvasStore } from '@/lib/store';
 import { useI18n } from '@/lib/hooks/use-i18n';
+import { BRANDING } from '@/lib/config/branding';
 import type { SceneType, SlideContent } from '@/lib/types/stage';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
 
@@ -126,7 +127,7 @@ export function SceneSidebar({
             className="flex items-center gap-2 cursor-pointer rounded-lg px-1.5 -mx-1.5 py-1 -my-1 hover:bg-muted/80 active:scale-[0.97] transition-all duration-150"
             title={t('generation.backToHome')}
           >
-            <img src="/logo-horizontal.png" alt="LuxUp AI Tutor" className="h-6" />
+            <img src={BRANDING.logoUrl} alt={BRANDING.logoAlt} className="h-6" />
           </button>
           <button
             onClick={() => onCollapseChange(true)}

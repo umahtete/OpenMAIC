@@ -5,14 +5,15 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { BRANDING } from '@/lib/config/branding';
 
 export default function LTIMissingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Auto-redirect to Moodle after 5 seconds
+    // Auto-redirect to the platform after 5 seconds
     const timer = setTimeout(() => {
-      window.location.href = 'https://courses.luxuptraining.com';
+      window.location.href = BRANDING.url;
     }, 5000);
 
     return () => clearTimeout(timer);
@@ -41,24 +42,24 @@ export default function LTIMissingPage() {
 
           {/* Title */}
           <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Moodle Login Required
+            Login Required
           </h1>
 
           {/* Description */}
           <p className="text-gray-600 mb-6">
-            This content must be accessed through Moodle. Please launch the activity from your course page.
+            This content must be accessed through your learning platform. Please launch the activity from your course page.
           </p>
 
           {/* Redirect info */}
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-700">
-              You will be redirected to Moodle in 5 seconds...
+              You will be redirected in 5 seconds...
             </p>
           </div>
 
           {/* Manual redirect button */}
           <a
-            href="https://courses.luxuptraining.com"
+            href={BRANDING.url}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <svg
@@ -74,7 +75,7 @@ export default function LTIMissingPage() {
                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
               />
             </svg>
-            Go to Moodle Now
+            Go to Platform Now
           </a>
 
           {/* Help text */}

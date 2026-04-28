@@ -11,6 +11,7 @@ import {
   LTISessionData
 } from '@/lib/lti/provider';
 import { LTI_CONFIG } from '@/lib/lti/config';
+import { BRANDING } from '@/lib/config/branding';
 
 /**
  * Return an HTML error page that can be displayed inside Moodle's iframe.
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
             launchContext.endpoint.lineItems,
             launchContext.contextId,
             launchContext.resourceLinkId,
-            launchContext.contextTitle || 'LuxUp AI Tutor'
+            launchContext.contextTitle || BRANDING.name
           );
           if (scoresUrl) {
             console.log('[LTI] Line item created, scores URL:', scoresUrl);

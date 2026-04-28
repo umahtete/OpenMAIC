@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 36" fill="none">
+  <!-- Icon: stylized "L" with accent dot (matches favicon) -->
+  <rect x="2" y="4" width="28" height="28" rx="6" fill="#1E3A5F"/>
+  <path d="M10 10H16V24H24V28H10V10Z" fill="#D4AF37"/>
+  <circle cx="24" cy="12" r="3" fill="#4A90E2"/>
+
+  <!-- Text: "LuxUp AI Tutor" -->
+  <text x="40" y="24" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#1E3A5F" letter-spacing="-0.02em">
+    <tspan fill="#D4AF37">Lux</tspan><tspan fill="#1E3A5F">Up</tspan>
+  </text>
+  <text x="100" y="24" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="400" fill="#4A90E2" letter-spacing="-0.01em">
+    AI Tutor
+  </text>
+</svg>

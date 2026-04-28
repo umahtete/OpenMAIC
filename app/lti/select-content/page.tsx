@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BookOpen, FileText, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BRANDING } from '@/lib/config/branding';
 import type { ContentItem } from '@/lib/deep-linking/types';
 
 interface ClassroomSummary {
@@ -67,8 +68,8 @@ function SelectContentInner() {
           setContentItems([
             {
               type: 'ltiResourceLink',
-              title: 'LuxUp AI Tutor',
-              text: 'Launch the AI-powered personalized education platform.',
+              title: BRANDING.name,
+              text: BRANDING.description,
               url: `${origin}/`,
             },
           ]);
@@ -78,8 +79,8 @@ function SelectContentInner() {
         setContentItems([
           {
             type: 'ltiResourceLink',
-            title: 'LuxUp AI Tutor',
-            text: 'Launch the AI-powered personalized education platform.',
+            title: BRANDING.name,
+            text: BRANDING.description,
             url: `${origin}/`,
           },
         ]);
@@ -235,7 +236,7 @@ function SelectContentInner() {
             </div>
           ) : contentItems.length === 0 ? (
             <div className="col-span-2 text-center py-12 text-muted-foreground">
-              No courses available yet. Create courses in LuxUp AI Tutor first.
+              No courses available yet. Create courses in {BRANDING.name} first.
             </div>
           ) : (
             contentItems.map((item) => (

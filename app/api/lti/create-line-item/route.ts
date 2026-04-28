@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getLTIPlatformConfig } from '@/lib/lti/config';
 import { getPrivateKey, getKeyId } from '@/lib/lti/keys';
 import { SignJWT } from 'jose';
+import { BRANDING } from '@/lib/config/branding';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             scoreMaximum: 100,
-            label: lineItem.label || 'LuxUp AI Tutor',
+            label: lineItem.label || BRANDING.name,
             resourceId: resourceLinkId,
             tag: 'luxup',
           }),
